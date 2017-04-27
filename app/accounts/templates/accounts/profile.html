@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+user.username（名前） : {{ user.username }}<hr>
+user.is_staff(/adminにログインできるか) : {{ user.is_staff }}<hr>
+user.is_active(アカウントはアクティブか、通常のログインはできるか) : {{ user.is_active }}<hr>
+user.is_superuser（すうぱあゆうざあ　ですか） : {{ user.is_superuser }}<hr>
+user.last_login(最期のログイン) : {{ user.last_login }}<hr>
+user.date_joined（アカウントの作られた日） : {{ user.date_joined }}
+{% endblock %}
