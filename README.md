@@ -12,7 +12,7 @@ Athletic Meeting Management System. Improve the ecfficency and get rig of annoyi
   + docker-compose
   
 + Client PC
-  + nothing spetial
+  + (Nothing)
 
 ## Instlation
 まず、dockerをインストールする。以下のサイトを参考に
