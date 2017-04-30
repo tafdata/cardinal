@@ -20,6 +20,7 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^accounts/', include('accounts.urls')),
     url(r'^comps/', include('competitions.urls', namespace='competitions')),
+    url(r'^organizer/', include('organizer.urls', namespace='organizer')),
     url(r'^admin/', admin.site.urls),
 ]
 

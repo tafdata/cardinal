@@ -42,7 +42,7 @@ class Comp(models.Model):
 
 
 """
-Event: 種目
+Event: 競技種目
 """
 class Event(models.Model):
     id = models.AutoField(primary_key=True)

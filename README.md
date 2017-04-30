@@ -67,9 +67,7 @@ $ docker-compose exec web python3 manage.py migrate
 1. 競技種目を登録(すでに登録されている場合は不要)
 1. 大会と競技種目を結び付けるため、EventStatusを追加.
 
-登録した情報は`http:localhost:7000/comp/`から確認できる.また、実施種目の**Status**と**Entry**は実施種目一覧ページから変更可能.
-
-
+登録した情報は`http://localhost:7000/comp/`から確認できる.また、実施種目の**Status**と**Entry**は実施種目一覧ページから変更可能.
 
 
 
