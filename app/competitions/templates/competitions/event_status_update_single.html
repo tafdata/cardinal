@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Status{% endblock title %}
+
+{% block extrahead %}
+<script>
+$(function() {
+		$('.del_confirm').on('click', function () {
+				$("#del_pk").text($(this).attr("pk"));
+				$('#del_url').attr('href', $(this).attr("url"));
+		});
+});
+</script>
+<style>
+table {
+		margin-top: 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="raw">
+		<div class="col-lg-8 ofset-lg-2">
+				<h3 class="page-header">種目状態 更新</h3>
+
+				<form action="{% url 'competitions:event_status_update_single' event_status_id=event_status.id  %}" method="post" role="form">
+						{% csrf_token %}
+						{{ form.id }}
+						{{ form.section }}
+						{{ form.event_name }}
+						{{ form.event_sex }}					
+						<div class="form-group row">
+								<label class="col-sm-2 col-form-label">大会</label>
+								<div class="col-sm-10">
+										{{ event_status.comp.name }} [大会コード: {{ event_status.comp.code }}]
+								</div>
+						</div>
+						<div class="form-group row">
+								<label class="col-sm-2 col-form-label">種目</label>
+								<div class="col-sm-10">
+										{{ form.event_name.value }}
+								</div>
+						</div>
+						<div class="form-group row">
+								<label class="col-sm-2 col-form-label">性別</label>
+								<div class="col-sm-10">
+										{{ form.event_sex.value }}
+										{{ form.event_sex }}
+								</div>
+						</div>
+						<div class="form-group row">
+								<label class="col-sm-2 col-form-label">種別</label>
+								<div class="col-sm-10">
+										{{ form.section.value }}
+										{{ form.section }}
+								</div>
+						</div>
+						<div class="form-group row">
+								<label class="col-sm-2 col-form-label">状態</label>
+								<div class="col-sm-10">
+										{{ form.status }}
+								</div>
+						</div>
+						<div class="form-group row">
+								<label class="col-sm-2 col-form-label">エントリー受付</label>
+								<div class="col-sm-10">
+										{{ form.entry }}
+								</div>
+						</div>
+						<div class="form-group">
+								<button type="submit" class="btn btn-primary">更新</button>
+						</div>
+				</form>
+
+
+				<div>
+						<a href="{% url 'competitions:event_status_list' comp_code=event_status.comp.code %}" class="btn btn-default btn-sm">戻る</a>
+				</div>
+		</div>
+</div>
+				
+{% endblock content %}

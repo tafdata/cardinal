@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}大会基本情報管理{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">大会基本情報管理ページ</h3>
+				<h4>大会関係</h4>
+				<div class="row">
+						<div class="col-sm-6">
+								<div class="card">
+										<div class="card-block">
+												<h4 class="card-title">大会一覧</h4>
+												<h6 class="card-subtitle mb-2 text-muted">登録された大会の一覧表</h6>
+												<p class="card-text">エントリー状態の更新は、まずこのページで大会を選択してください.</p>
+												<a href="{% url 'competitions:comp_list' %}" class="card-link">大会一覧へ</a>
+										</div>
+								</div>
+						</div>
+						<div class="col-sm-6">
+								<div class="card">
+										<div class="card-block">
+												<h4 class="card-title">新規登録</h4>
+												<h6 class="card-subtitle mb-2 text-muted">大会を新規登録</h6>
+												<p class="card-text">以下のリンクより管理画面に入り、右上の「COMPを追加」をクリック</p>
+												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">新規登録</a>
+										</div>
+								</div>
+						</div>
+				</div>
+				<h4 class="mt-3">競技種目</h4>
+				<div class="row">
+						<div class="col-sm-6">
+								<div class="card">
+										<div class="card-block">
+												<h4 class="card-title">種目一覧</h4>
+												<h6 class="card-subtitle mb-2 text-muted">競技種目一覧</h6>
+												<a href="{% url 'competitions:event_list' %}" class="card-link">競技種目一覧へ</a>
+										</div>
+								</div>
+						</div>
+						<div class="col-sm-6">
+								<div class="card">
+										<div class="card-block">
+												<h4 class="card-title">新規登録</h4>
+												<h6 class="card-subtitle mb-2 text-muted">競技種目を新規登録</h6>
+												<p class="card-text">以下のリンクより管理画面に入り、右上の「EVENTを追加」をクリック. 管理者ユーザーのみ実行可.</p>
+												<a href="http://localhost:7000/admin/competitions/event/" class="card-link">新規登録</a>
+										</div>
+								</div>
+						</div>
+				</div>
+
+		</div>
+</div>
+{% endblock content %}
