@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}大会運営ツール{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">大会運営ツール</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				<!-- Main -->
+				<h4>Entry Manager</h4>
+				<div class="row">
+						<div class="col-sm-6">
+								<div class="card mb-3">
+										<div class="card-block">
+												<h4 class="card-title">エントリー状況確認</h4>
+												<h6 class="card-subtitle mb-2 text-muted">表示数が多い場合は以下の選択ボックスから絞り込みをしてください。</h6>
+
+												<form action="{% url 'organizer:entry_list' %}" method="GET">
+														{% csrf_token %}
+														<div class="row">
+																<div class="col-6">
+																		<div class="form-group">
+																				<label>競技種別</label>
+																				{{ form.section }}
+																		</div>																		
+																</div>
+																<div class="col-6">
+																		<div class="form-group">
+																				<label>種目</label>
+																				{{ form.event }}
+																		</div>																		
+																</div>
+														</div>
+														<div class="row">
+																<div class="col-12">
+																		<button type="submit" class="btn btn-primary">絞り込む</button>
+																		<a href="{% url 'organizer:entry_list' %}" class="btn btn-secondary">全件表示</a>
+																</div>
+														</div>
+												</form>
+										</div>
+								</div>
+						</div>
+						<div class="col-sm-6">
+								<div class="card mb-3">
+										<div class="card-block">
+												<h4 class="card-title">新規エントリー</h4>
+												<a href="{% url 'organizer:entry_add' %}" class="card-link">個別登録</a>
+												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">一括登録</a>
+										</div>
+								</div>
+								<div class="card mb-3">
+										<div class="card-block">
+												<h4 class="card-title">スタートリスト</h4>
+												<a href="{% url 'organizer:entry_add' %}" class="card-link">スタートリスト表示</a>
+												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">番組編成</a>
+										</div>
+								</div>
+						</div>
+				</div>
+				<div class="row">
+						<div class="col-12">
+								<div class="card my-3">
+										<div class="card-block">
+												<h4 class="card-title">エントリー状況 <small class="text-muted">{{ comp.name }}</small></h4>
+												<h6 class="card-subtitle mb-2 text-muted"></h6>
+										</div>
+										<div class="card-block">
+												<table class="table table-striped table-sm">
+														<thead>
+																<tr>
+																		<th>区分</th>
+																		<th>種目</th>
+																		<th>性別</th>
+																		<th>組/レーン</th>
+																		<th>氏名</th>
+																		<th>所属</th>
+																		<th>参考記録</th>
+																		<th>Status</th>
+																		<th>Options</th>
+																</tr>
+														</thead>
+														<tbody>
+																{% for entry in entries %}
+																<tr>
+																		<td style="white-space:nowrap;">{{ entry.event_status.section }}</td>
+																		<td style="white-space:nowrap;">{{ entry.event_status.event.name }}</td>
+																		<td>{{ entry.sex }}</td>
+																		<td style="white-space:nowrap;">
+																				{% if entry.group %}
+																				{{ entry.group }} / {{ entry.position }}
+																				{% else %}
+																				- / -
+																				{% endif %}
+																		</td>
+																		<td style="white-space:nowrap;">{{ entry.name_family }} {{ entry.name_first }}</td>
+																		<td>{{ entry.club }}</td>
+																		<td style="white-space:nowrap;">{{ entry.personal_best }}</td>
+																		<td>{{ entry.entry_status }}</td>
+																		<td></td>
+																</tr>
+																{% endfor %}
+														</tbody>
+												</table>
+										</div>
+										<div class="card-footer text-muted">
+												{% if is_paginated %}
+												<nav aria-label="Page navigation example">
+														<ul class="pagination">
+																{% if page_obj.has_previous %}
+																<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+																{% else %}
+																<li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
+																{% endif %}
+																{% for linkpage in page_obj.paginator.page_range %}
+																{% ifequal linkpage page_obj.number %}
+																<li  class="page-item active"><a class="page-link" href="#">{{ linkpage }}</a></li>
+																{% else %}
+																<li class="page-item"><a class="page-link" href="?page={{ linkpage }}">{{ linkpage }}</a></li>
+																{% endifequal %}
+																{% endfor %}
+																{% if page_obj.has_next %}
+																<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+																{% else %}
+																<li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
+																{% endif %}
+														</ul>
+												</nav>
+												{% endif %}									
+										</div>
+								</div>	
+
+						</div>
+				</div>
+		</div>
+</div>
+{% endblock content %}

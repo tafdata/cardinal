@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}大会運営ツール{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">運営競技会の選択</h3>
+				<p>運営する競技会を選択します。これから運営する競技会の詳細を確認して間違えがなければ選択ボタンをクリックしてください。</p>
+				<!-- Alert -->
+				{% if request.session.comp_code %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning</strong> 運営する競技会を変更します。
+				</div>
+				{% endif %}				
+		</div>
+		<div class="col-lg-10 offset-lg-1">
+				<div class="card">
+						<div class="card-block">
+								<h4 class="card-title">{{ comp.name }}</h4>
+								<h6 class="card-subtitle mb-2 text-muted"> [大会コード: {{ comp.code }}]</h6>
+								
+								<table class="table table-striped">
+										<thead>
+												<tr>
+														<th>項目</th>
+														<th>詳細</th>
+												</tr>
+										</thead>
+										<tbody>
+												<tr>
+														<td>期日</td>
+														<td>{{ comp.date }}</td>
+												</tr>
+												<tr>
+														<td>会場</td>
+														<td>
+																<p>{{ comp.place }}</p>
+																<p class="text-muted">[会場コード: {{ comp.place_code }}</p>
+														</td>
+												</tr>
+												<tr>
+														<td>主催</td>
+														<td>{{ comp.sponsor }}</td>
+												</tr>
+												<tr>
+														<td>主管</td>
+														<td>{{ comp.organizer }}</td>
+												</tr>												
+												<tr>
+														<td>状態</td>
+														<td>{{ comp.status }}</td>
+												</tr>														
+										</tbody>
+								</table>
+						</div>
+						<div class="card-block">
+								<div class="row">
+										<div class="col-md-4">
+												<form action="{% url 'organizer:select_comp' comp_code=comp.code  %}" method="post" role="form">
+														{% csrf_token %}
+														{{ form.comp_code }}
+														<button type="submit" class="btn btn-primary">この競技会を選択する</button>
+												</form>
+										</div>
+										<div class="col-md-4">
+												<a href="{% url 'organizer:index' %}" class="btn btn-secondary">戻る</a>
+										</div>
+								</div>
+						</div>
+				</div>
+
+</div>
+{% endblock content %}

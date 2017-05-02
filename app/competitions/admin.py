@@ -39,6 +39,6 @@ admin.site.register(Event, EventAdmin)
 EventStatus
 """
 class EventStatusAdmin(admin.ModelAdmin):
-    list_display = ('id', 'comp', 'event', 'status', 'entry', 'section', 'created', 'modified')
+    list_display = ('id', 'comp', 'event', 'status',  'section', 'created', 'modified')
     list_display_links = ('comp', 'event',)
 admin.site.register(EventStatus, EventStatusAdmin)

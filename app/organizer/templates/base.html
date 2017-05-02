@@ -1,0 +1,44 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'ja' }}">
+		<head>
+				<meta charset="UTF-8">
+				<title>{% block title %}Accounts{% endblock %}</title>
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+				<!-- Javascript -->
+				<script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+				<script src="{% static 'js/tether/dist/js/tether.min.js' %}"></script>
+				<script src="{% static 'js/moment/moment.min.js' %}"></script>
+				<script src="{% static 'js/chartjs/Chart.min.js' %}"></script>
+				<!-- Bootstrap -->
+				<link href="{% static 'bootstrap/dist/css/bootstrap.css' %}" rel="stylesheet">
+				<script src="{% static 'bootstrap/dist/js/bootstrap.min.js' %}"></script>
+				{% block extrahead %}{% endblock %}
+		</head>
+		<body>
+				<nav class="navbar navbar-toggleable-sm fixed-top  navbar-light navbar-inverse bg-primary w-100" >
+						<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+								<span class="navbar-toggler-icon"></span>
+						</button>
+						<a class="navbar-brand" href="#">Cardinal</a>
+						<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+								<div class="navbar-nav">
+										<a class="nav-item nav-link" href="#">#1</a>
+										<a class="nav-item nav-link" href="#">#2<span class="sr-only">(current)</span></a>
+										<a class="nav-item nav-link" href="#">#3</a>
+										<a class="nav-item nav-link" href="#">#4</a>
+										<a class="nav-item nav-link" href="#">#5</a>
+								</div>
+						</div>
+				</nav>
+				<div class="container-fluid w-100" style="overflow:auto;">
+						<nav class="navbar navbar-light mt-3">
+								<a class="navbar-brand" href="#">Spacing</a>
+						</nav>
+						{% block content %}
+						{{ content }}
+						{% endblock %}
+				</div>
+		</body>
+</html>

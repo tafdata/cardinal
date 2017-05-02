@@ -31,7 +31,6 @@ table {
 										<tr>
 												<th>#</th>
 												<th>Status</th>
-												<th>エントリー受付</th>
 												<th>種目</th>
 												<th>性別</th>
 												<th>区分</th>
@@ -48,11 +47,6 @@ table {
 												<td>
 														<div class="form-group">
 																{{ form.status }}
-														</div>
-												</td>
-												<td>
-														<div class="form-group">
-																{{ form.entry }}
 														</div>
 												</td>
 												<td>
@@ -81,7 +75,7 @@ table {
 
 
 				<div>
-						<a href="{% url 'competitions:event_status_list' comp_code=event_status.comp.code %}" class="btn btn-default btn-sm">戻る</a>
+						<a href="{% url 'competitions:event_status_list' comp_code=comp.code %}" class="btn btn-default btn-sm">戻る</a>
 				</div>
 		</div>
 </div>

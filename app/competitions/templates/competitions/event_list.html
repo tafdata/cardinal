@@ -42,7 +42,11 @@ table {
 		  <td>{{ event.short }}</td>
 		  <td>{{ event.sex }}</td>
 		  <td>{{ event.order }}</td>
-		  <td>12{{ event.separator_1 }}23{{ event.separator_1 }}45{{ event.separator_1 }}</td>
+		  <td>				
+				  {% if event.separator_1 %}12{{ event.separator_1 }}{% endif %}
+				  {% if event.separator_2 %}34{{ event.separator_2 }}{% endif %}
+				  56{{ event.separator_3 }}
+		  </td>
 		  <td>{{ event.created }}</td>
 		  <td>{{ event.modified }}</td>
           <td>

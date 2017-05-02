@@ -10,7 +10,7 @@ from django.utils import timezone # datetimeのwrapper
 
 
 from competitions.models import Comp, Event, EventStatus
-from competitions.forms  import EventStatusUpdateForm, AddFormIndexIntoKwargsFormSet
+from competitions.forms  import EventStatusUpdateForm
 
 
 
@@ -97,9 +97,9 @@ def update_event_status_single(request, event_status_id):
     event_status = get_object_or_404(EventStatus, pk=event_status_id)
     
     if request.method == 'POST':
-        form = EventStatusUpdateForm(request.POST)
+        form = EventStatusUpdateForm(request.POST, instance=event_status)
         if form.is_valid():
-            form.save(commut=True)
+            form.save(commit=True)
         else:
             print("invalid")
         return redirect('competitions:event_status_list', comp_code=event_status.comp.code)
