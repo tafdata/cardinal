@@ -63,7 +63,7 @@
 										<div class="card-block">
 												<h4 class="card-title">スタートリスト</h4>
 												<a href="{% url 'organizer:entry_add' %}" class="card-link">スタートリスト表示</a>
-												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">番組編成</a>
+												<a href="{% url 'organizer:sl_top' %}" class="card-link">番組編成</a>
 										</div>
 								</div>
 						</div>
@@ -82,7 +82,8 @@
 																		<th>区分</th>
 																		<th>種目</th>
 																		<th>性別</th>
-																		<th>組/レーン</th>
+																		<th>組</th>
+																		<th>レーン</th>
 																		<th>氏名</th>
 																		<th>所属</th>
 																		<th>参考記録</th>
@@ -97,17 +98,18 @@
 																		<td style="white-space:nowrap;">{{ entry.event_status.event.name }}</td>
 																		<td>{{ entry.sex }}</td>
 																		<td style="white-space:nowrap;">
-																				{% if entry.group %}
-																				{{ entry.group }} / {{ entry.position }}
-																				{% else %}
-																				- / -
-																				{% endif %}
+																				{% if entry.group %}{{ entry.group }}{% else %}-{% endif %}
+																		</td>
+																		<td style="white-space:nowrap;">
+																				{% if entry.order_lane %}{{ entry.order_lane }}{% else %}-{% endif %}
 																		</td>
 																		<td style="white-space:nowrap;">{{ entry.name_family }} {{ entry.name_first }}</td>
 																		<td>{{ entry.club }}</td>
 																		<td style="white-space:nowrap;">{{ entry.personal_best }}</td>
 																		<td>{{ entry.entry_status }}</td>
-																		<td></td>
+																		<td>
+																				<a href="{% url 'organizer:sl_top' event_status_id=entry.event_status.id %}" class="card-link">番組編成</a>
+																		</td>
 																</tr>
 																{% endfor %}
 														</tbody>

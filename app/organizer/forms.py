@@ -69,3 +69,41 @@ class EntryForm(forms.ModelForm):
         self.fields["jaaf_branch"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["personal_best"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'ex. 001234'})
                 
+
+
+"""
+SL Edit Order/Lane
+"""
+class SLEditForm(forms.ModelForm):
+    bib = forms.CharField(widget=forms.HiddenInput())
+    name = forms.CharField(widget=forms.HiddenInput())
+    kana = forms.CharField(widget=forms.HiddenInput())
+    grade = forms.CharField(widget=forms.HiddenInput())
+    club = forms.CharField(widget=forms.HiddenInput())
+    pb = forms.CharField(widget=forms.HiddenInput())
+    status = forms.CharField(widget=forms.HiddenInput())
+
+    
+    class Meta:
+        model = Entry
+        fields = ['id', 'group', 'order_lane']
+        widgets = {
+            'group': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder':'組'}),
+            'order_lane': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
+        }
+
+        
+    def __init__(self, *args, **kwargs):
+        entry = kwargs['instance']
+        super(SLEditForm, self).__init__(*args, **kwargs)
+        self.fields["bib"].initial = entry.bib
+        self.fields["name"].initial =  entry.name_family+" "+entry.name_first
+        self.fields["kana"].initial =  entry.kana_family+" "+entry.kana_first
+        self.fields["grade"].initial = entry.grade
+        self.fields["club"].initial =  entry.club
+        self.fields["pb"].initial =  entry.personal_best
+        self.fields["status"].initial =  entry.entry_status
+
+        self.fields["group"].widget.attrs.update()
+        self.fields["order_lane"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
+

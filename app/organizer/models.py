@@ -22,7 +22,7 @@ Entry: エントリー
 class Entry(models.Model):
     id = models.AutoField(primary_key=True)
     event_status = models.ForeignKey('competitions.EventStatus')
-    bib = models.CharField(max_length=64, blank=True, help_text="ゼッケンナンバー")
+    bib = models.CharField(max_length=64, blank=True)
     name_family = models.CharField("family name", max_length=64, help_text="姓")
     name_first = models.CharField("first name", max_length=64, help_text="名")
     kana_family = models.CharField(max_length=64, help_text="セイ")
@@ -36,8 +36,8 @@ class Entry(models.Model):
     club  = models.CharField(max_length=256, blank=True, help_text="ex. 大阪大")
     jaaf_branch = models.CharField(max_length=64) # 登録陸協
     personal_best = models.CharField(max_length=6, blank=True)
-    group = models.CharField(max_length=64, blank=True)
-    position = models.CharField(max_length=64, blank=True) # レーン
+    group = models.CharField(max_length=4, blank=True)
+    order_lane = models.CharField(max_length=4, blank=True) # レーン/試技順
     entry_status = models.CharField(
         max_length=64,
         choices=ENTRY_STATUS_CHOICES,
@@ -53,4 +53,4 @@ class Entry(models.Model):
 
     
     class Meta:
-        unique_together = ('event_status', 'group', 'position')
+        unique_together = ('bib', 'event_status', 'group', 'order_lane')

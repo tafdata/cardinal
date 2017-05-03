@@ -8,11 +8,12 @@ from django.http import HttpResponse
 from django.views.generic.list import ListView
 from django.utils import timezone # datetimeのwrapper
 #from django.core.exceptions import DoesNotExist
+from django.db.models.aggregates import Count
 
 from competitions.models import Comp, Event, EventStatus
 
 from organizer.models import Entry
-from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm
+from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditForm
 
 
 
@@ -120,3 +121,74 @@ def entry_add(request):
     return render(request,
                   'organizer/entry_add.html',
                   {'form': form, 'comp': comp, 'msg': msg})
+
+
+# ================================ #
+#   SL | Start List
+# ================================ #
+def sl_top(request, event_status_id=None):
+    try:
+        comp = get_object_or_404(Comp, pk=request.session["comp_code"])
+    except KeyError:
+        return redirect('organizer:index')
+
+    if event_status_id:
+        # 種目が指定されていればその一覧を表示
+        event_status = get_object_or_404(EventStatus, pk=event_status_id)
+        entries = Entry.objects.filter(event_status=event_status).order_by('group', 'order_lane')
+        return render(request,
+                      'organizer/SL.html',
+                      {'mode': "entry", 'comp': comp, 'event_status': event_status, 'entries': entries})
+    else:
+        # 種目が指定されていない場合は実施種目一覧を表示
+        event_statuss = EventStatus.objects.filter(comp=comp)
+        return render(request,
+                      'organizer/SL.html',
+                      {'mode': "event", 'comp': comp, 'event_statuss': event_statuss})
+    
+"""
+SL 組,レーン試技順　編集ページ
+"""
+def sl_edit(request, event_status_id):
+    try:
+        comp = get_object_or_404(Comp, pk=request.session["comp_code"])
+    except KeyError:
+        return redirect('organizer:index')
+    event_status = get_object_or_404(EventStatus, pk=event_status_id)
+    entries = Entry.objects.filter(event_status=event_status).order_by('personal_best')
+    SLEditFormSet = modelformset_factory(Entry,form=SLEditForm,extra=0)
+    
+    if request.method == 'POST':
+        formset = SLEditFormSet(request.POST)
+        if formset.is_valid():
+            formset.save(commit=True)
+            return redirect('organizer:sl_top', event_status_id=event_status.id)
+        else:
+            print("Error@is_valid()")
+            return redirect('organizer:sl_edit', event_status_id=event_status.id)
+    else:
+        formset = SLEditFormSet(queryset=entries)        
+    return render(request,
+                  'organizer/SL_edit.html',
+                  {'formset': formset, 'comp': comp, 'event_status': event_status})    
+
+
+"""
+SL スタートリスト web表示
+"""
+def sl_web(request, event_status_id):
+    try:
+        comp = get_object_or_404(Comp, pk=request.session["comp_code"])
+    except KeyError:
+        return redirect('organizer:index')
+    event_status = get_object_or_404(EventStatus, pk=event_status_id)
+
+    # 組数を取得
+    groups = Entry.objects.filter(event_status=event_status).values('group').annotate(cnt=Count("*"),)
+    for group in groups:
+        group["entries"] = Entry.objects.filter(event_status=event_status, group=group["group"]).order_by('order_lane')    
+    # print("Groups: ",groups)
+
+    return render(request,
+                  'organizer/SL_web.html',
+                  {'comp': comp, 'event_status': event_status, 'groups':groups})    

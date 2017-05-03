@@ -32,6 +32,12 @@ SECTION_CHOICES = (
     ('XX', 'その他'),
 )
 
+ROUND_CHOICES = (
+    ('Heats', 'Heats'),
+    ('Qualification', 'Qualification'),
+    ('Semifinal', 'Semifinal'),
+    ('Final', 'Final'),
+)
 
 ####################################
 ## Models
@@ -112,7 +118,13 @@ class EventStatus(models.Model):
         choices=SECTION_CHOICES,
         default='OP',
     ) # 対校/OP
-
+    match_round = models.CharField(
+        "Round",
+        max_length=64,
+        choices=ROUND_CHOICES,
+        default='Final',
+    )
+    
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -121,7 +133,7 @@ class EventStatus(models.Model):
 
 
     class Meta:
-        unique_together = ('comp', 'event')
+        unique_together = ('comp', 'event', 'match_round')
 
 
     
