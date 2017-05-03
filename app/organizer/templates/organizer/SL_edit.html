@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
 
 {% block title %}SL|大会運営ツール{% endblock title %}
 
@@ -16,6 +18,11 @@
 						<strong>Warning!</strong> 運営する競技会が選択されていません。競技会を選択してください。
 				</div>
 				{% endif %}
+				{% if msg %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!:</strong> {{ msg }}
+				</div>
+				{% endif %} 
 				<!-- Main -->
 				<div class="row">
 						<div class="col-12">
@@ -60,7 +67,7 @@
 																				<td>{{ form.name.value }} ({{ form.grade.value}})</td>
 																				<td><small>{{ form.kana.value }}</small></td>
 																				<td>{{ form.club.value }}</td>
-																				<td>{{ form.pb.value }}</td>
+																				<td>{% format_mark form.pb.value  event_status.event %}</td>
 																				<td>{{ form.status.value }}</td>
 																		</tr>
 																		{% endfor %}
@@ -75,6 +82,7 @@
 								</form>
 						</div>
 				</div>
+				<a href="{% url 'organizer:sl_top' %}" class="btn btn-secondary">戻る</a>
 		</div>
 </div>
 {% endblock content %}

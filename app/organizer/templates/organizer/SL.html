@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
 
 {% block title %}SL|大会運営ツール{% endblock title %}
 
@@ -22,7 +24,11 @@
 								<div class="card mb-3">
 										<div class="card-block">
 												<h4 class="card-title">番組編成</h4>
-												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">組とレーンを入力</a>
+												{% if mode == 'entry' %}
+												<a href="{% url 'organizer:sl_edit' event_status_id=event_status.id %}" class="card-link">組とレーンを編集する</a>
+												{% else %}
+												<p class="card-text">以下の表から種目を選択してください。</p>
+												{% endif %}
 										</div>
 								</div>
 						</div>
@@ -30,7 +36,12 @@
 								<div class="card mb-3">
 										<div class="card-block">
 												<h4 class="card-title">スタートリスト</h4>
-												<a href="{% url 'organizer:entry_add' %}" class="card-link">スタートリスト表示</a>
+												{% if mode == 'entry' %}
+												<a href="{% url 'organizer:sl_web' event_status_id=event_status.id %}" class="card-link">web版</a>
+												{% else %}
+												<p class="card-text">以下の表から種目を選択してください。</p>
+												{% endif %}
+
 										</div>
 								</div>
 						</div>
@@ -70,7 +81,7 @@
 																				{{ entry.kana_family }} {{ entry.kana_first }}
 																		</td>
 																		<td>{{ entry.club }}</td>
-																		<td style="white-space:nowrap;">{{ entry.personal_best }}</td>
+																		<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
 																		<td>{{ entry.entry_status }}</td>
 																		<td>
 																		</td>

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}大会運営ツール{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">大会運営ツール</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info:</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!:</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				<!-- Main -->
+				<div class="card">
+						<div class="card-block">
+								<h4 class="card-title">Summary</h4>
+								<h6 class="card-subtitle mb-2 text-muted">処理結果</h6>
+						</div>
+						<div class="card-block">
+								<div class="row">
+										<div class="col-md-4">
+												<div class="alert alert-info" role="alert">
+														<h4 class="alert-heading">Input</h4>
+														<p>ファイル名: {{ summary.file_name }}</p>
+														<p>入力行数: {{ summary.input_num }}</p>													
+												</div>
+										</div>
+										<div class="col-md-4">
+												<div class="alert alert-success" role="alert">
+														<h4 class="alert-heading">Success</h4>
+														<p>処理成功数: {{ summary.success_num }}</p>													
+												</div>
+										</div>
+										<div class="col-md-4">
+												<div class="alert alert-danger" role="alert">
+														<h4 class="alert-heading">Error</h4>													
+														<p>処理未完了: {{ summary.error_num }}</p>													
+												</div>
+										</div>
+								</div>
+
+						</div>
+				</div>
+				<div class="card">
+						<div class="card-block">
+								<h4 class="card-title">Error</h4>
+								<h6 class="card-subtitle mb-2 text-muted">一括登録でのエラー項目</h6>
+						</div>
+						<div class="card-block">
+								<table class="table table-striped">
+										<thead>
+												<tr>
+														<th>#</th>
+														<th>種目</th>
+														<th>氏名</th>
+														<th>Error Type</th>
+														<th>Error Message</th>
+												</tr>
+										</thead>
+										<tbody>
+												{% for error in errors %}
+												<tr>
+														<th scope="row">{{ forloop.counter }}</th>
+														<td style="white-space: nowrap;">
+																{{ error.df.section }} {{ error.df.sex }}<br>
+																{{ error.df.event }}
+														</td>
+														<td style="white-space: nowrap;">
+																{{ error.df.name }}<br>
+																[{{ error.df.club }}]
+														</td>
+														<td style="white-space: nowrap;">{{ error.type }}</td>
+														<td>{{ error.msg }}</td>
+												</tr>
+												{% endfor %}
+										</tbody>
+								</table>
+
+						</div>
+				</div>
+				<a href="{% url 'organizer:sl_top' %}" class="btn btn-secondary">戻る</a>
+		</div>
+</div>
+{% endblock content %}

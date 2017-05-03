@@ -8,6 +8,7 @@ urlpatterns = [
     # Entry
     url(r'^entry/$', views.EntryList.as_view(), name='entry_list'),
     url(r'^entry/add/$', views.entry_add, name='entry_add'),
+    url(r'^entry/add/file/$', views.entry_add_by_file, name='entry_add_by_file'),
     # Start List
     url(r'^sl/$', views.sl_top, name='sl_top'),
     url(r'^sl/(?P<event_status_id>\d+)/$', views.sl_top, name='sl_top'),

@@ -73,8 +73,17 @@
 														</td>
 														<td>{{ comp.status }}</td>
 														<td>
+																{% if request.session.comp_code  == comp.code %}
+																<a href="{% url 'organizer:select_comp'  comp_code=comp.code %}" class="btn btn-primary btn-sm disabled mx-1 my-1">この大会を選択</a>
+																{% else %}
 																<a href="{% url 'organizer:select_comp'  comp_code=comp.code %}" class="btn btn-primary btn-sm mx-1 my-1">この大会を選択</a>
+																{% endif %}
+
+																{% if request.session.comp_code  == comp.code %}
 																<a href="{% url 'competitions:event_status_list'  comp_code=comp.code %}" class="btn btn-secondary btn-sm mx-1 my-1">競技種目一覧</a>
+																<a href="{% url 'organizer:entry_list' %}" class="btn btn-secondary btn-sm mx-1 my-1">Entry Manager</a>
+																<a href="{% url 'organizer:sl_top' %}" class="btn btn-secondary btn-sm mx-1 my-1">スタートリスト</a>
+																{% endif %}
 
 														</td>
 												</tr>

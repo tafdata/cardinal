@@ -70,6 +70,27 @@ class EntryForm(forms.ModelForm):
         self.fields["personal_best"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'ex. 001234'})
                 
 
+"""
+Entry Add [一括]
+"""
+ENTRY_STATUS_CHOICES = (
+    ('Entry', '通常エントリー'),
+    ('Entry_2', '当日エントリーetc'),
+)
+
+class EntryUploadFileForm(forms.Form):
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={'class': 'form-control-file', 'accept': 'text/csv'})
+    )
+    entry_status = forms.ChoiceField(
+        choices=ENTRY_STATUS_CHOICES,
+        initial='Entry',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+
+
+    
 
 """
 SL Edit Order/Lane

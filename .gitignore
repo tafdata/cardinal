@@ -14,8 +14,8 @@ coach/static/js/moment/
 !coach/static/js/moment/moment.js
 
 # Files
-
-
+demo_data/*
+!demo_data/README.md
 
 
 

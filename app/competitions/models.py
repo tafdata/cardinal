@@ -133,7 +133,7 @@ class EventStatus(models.Model):
 
 
     class Meta:
-        unique_together = ('comp', 'event', 'match_round')
+        unique_together = ('comp', 'event', 'section', 'match_round')
 
 
     

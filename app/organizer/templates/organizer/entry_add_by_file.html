@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}大会運営ツール{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">大会運営ツール</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info:</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!:</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				{% if msg %}
+				<div class="alert alert-danger" role="alert">
+						<strong>Error:</strong> {{ msg }}
+				</div>
+				{% endif %}
+				<!-- Main -->
+
+				<div class="card">
+						<h4 class="card-title">エントリー新規追加</h4>						
+						<div class="card-block">
+								<form action="{% url 'organizer:entry_add_by_file' %}" enctype="multipart/form-data" method="POST" role="form">
+										{% csrf_token %}
+										<div class="form-group">
+												<label for="exampleInputFile">エントリーファイル CSV</label>
+												{{ form.file }}
+												<small id="fileHelp" class="form-text text-muted"></small>
+										</div>
+										<div class="form-group">
+												<label for="exampleInputFile">エントリー種別</label>
+												{{ form.entry_status }}
+												<small id="fileHelp" class="form-text text-muted"></small>
+										</div>							
+										<button type="submit" class="btn btn-primary">Upload</button>
+										<a href="{% url 'organizer:entry_list' %}" class="btn btn-secodary">戻る</a>
+								</form>
+						</div>
+				</div>
+		</div>
+</div>
+{% endblock content %}

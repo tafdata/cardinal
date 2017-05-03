@@ -13,11 +13,26 @@ from django.db.models.aggregates import Count
 from competitions.models import Comp, Event, EventStatus
 
 from organizer.models import Entry
-from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditForm
+from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditForm, EntryUploadFileForm
+from organizer.upload import EntryHandler
+
 
 
 
 # Create your views here.
+# ================================ #
+#   Functions
+# ================================ #
+"""
+セッション変数から運営中競技会のCompオブジェクトを取得
+"""
+def get_comp(request):
+    try:
+        return get_object_or_404(Comp, pk=request.session["comp_code"])
+    except KeyError:
+        return redirect('organizer:index')
+
+
 # ================================ #
 #   Index
 # ================================ #
@@ -122,6 +137,34 @@ def entry_add(request):
                   'organizer/entry_add.html',
                   {'form': form, 'comp': comp, 'msg': msg})
 
+def entry_add_by_file(request):
+    comp = get_comp(request)
+
+    
+    if request.method == "POST":
+        form = EntryUploadFileForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            EH = EntryHandler(comp,form.cleaned_data["entry_status"])
+            errors = EH.handle_csv(request.FILES['file'])
+            summary = {
+                "file_name": str(request.FILES['file']),
+                "input_num": EH.success_num+len(EH.errors),
+                "success_num": EH.success_num,
+                "error_num": len(EH.errors)
+            }
+                
+            return render(request,
+                          'organizer/entry_add_by_file_error_check.html',
+                          {'comp': comp, 'summary': summary, 'errors': errors})
+    else:
+        form = EntryUploadFileForm()
+
+    return render(request,
+                  'organizer/entry_add_by_file.html',
+                  {'form': form, 'comp': comp})    
+        
+
 
 # ================================ #
 #   SL | Start List
@@ -157,6 +200,7 @@ def sl_edit(request, event_status_id):
     event_status = get_object_or_404(EventStatus, pk=event_status_id)
     entries = Entry.objects.filter(event_status=event_status).order_by('personal_best')
     SLEditFormSet = modelformset_factory(Entry,form=SLEditForm,extra=0)
+    msg = False
     
     if request.method == 'POST':
         formset = SLEditFormSet(request.POST)
@@ -164,13 +208,14 @@ def sl_edit(request, event_status_id):
             formset.save(commit=True)
             return redirect('organizer:sl_top', event_status_id=event_status.id)
         else:
-            print("Error@is_valid()")
-            return redirect('organizer:sl_edit', event_status_id=event_status.id)
+            msg="入力内容に不備があります。入力内容を確認し直してください。"
+            print(msg)
     else:
         formset = SLEditFormSet(queryset=entries)        
+
     return render(request,
                   'organizer/SL_edit.html',
-                  {'formset': formset, 'comp': comp, 'event_status': event_status})    
+                  {'formset': formset, 'comp': comp, 'event_status': event_status, 'msg': msg})    
 
 
 """
