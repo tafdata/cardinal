@@ -26,7 +26,6 @@ class EntryHandler:
         print("handle_csv called")
         df = pd.read_csv(f)
         df = df.fillna(False)
-        #print(df.head())
         self.check_csv_format(df)
         for i in range(len(df)):
             if self.regist_entry(df.ix[i,:].to_dict()):
@@ -39,9 +38,8 @@ class EntryHandler:
         # カラム
         if not len(df.columns) == len(self.columns):        
             raise ValueError("Invalid CSV format, Column Num=("+str(len(df.columns))+","+str(len(self.columns))+")")
-
-
         
+
     #
     # Entry を一行ごと処理する
     #
@@ -70,9 +68,9 @@ class EntryHandler:
             #print("PB: ", pb)
             #print("entry_status:", self.entry_status)
             group = df["group"]            
-            if not group: group = ""
+            if not group: group = -1
             order_lane = df["order_lane"]
-            if not order_lane: order_lane = ""
+            if not order_lane: order_lane = -1
             #print("group, order_lane: ", group, order_lane, type(group))
             #  Entry Object の作成
             entry = Entry.objects.create(

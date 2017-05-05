@@ -36,8 +36,8 @@ class Entry(models.Model):
     club  = models.CharField(max_length=256, blank=True, help_text="ex. 大阪大")
     jaaf_branch = models.CharField(max_length=64) # 登録陸協
     personal_best = models.CharField(max_length=6, blank=True)
-    group = models.CharField(max_length=4, blank=True)
-    order_lane = models.CharField(max_length=4, blank=True) # レーン/試技順
+    group = models.IntegerField(default=-1)      # 組
+    order_lane = models.IntegerField(default=-1) # レーン/試技順
     entry_status = models.CharField(
         max_length=64,
         choices=ENTRY_STATUS_CHOICES,

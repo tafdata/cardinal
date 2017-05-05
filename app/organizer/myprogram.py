@@ -1,4 +1,5 @@
 import numpy as np
+import mojimoji
 import openpyxl as px
 import pandas as pd
 from openpyxl.styles import Font
@@ -6,23 +7,46 @@ from openpyxl.styles.colors import Color
 from openpyxl.styles import Alignment
 from openpyxl.styles import Border, Side
 
+
+from django.db.models.aggregates import Count
 # Models
-from competitions.models import Comp, Event, EventStatus
+from competitions.models import Comp, Event, EventStatus, GR as GRecord
 from organizer.models import Entry
+from organizer.templatetags.organizer_tags import format_mark
+from organizer.templatetags.organizer_filters import zen_to_han
+
+
+"""
+Default Styling
+"""
+# Color
+color_default = Color(theme=1, tint=0.0)
+# Font
+font_default = Font(name='ＭＳ ゴシック',charset=128,family=3.0,b=False,i=False,strike=None,outline=None,shadow=None,condense=None,color=color_default,size=9,)
+# Alignment
+al_default = Alignment(shrinkToFit=None, textRotation=0, vertical='center', horizontal='center', indent=0.0, justifyLastLine=None, relativeIndent=0.0, wrapText=None, readingOrder=0.0)
+# Border
+border_default = Border(
+    left=Side(border_style=None, color='FF000000'),
+    right=Side(border_style=None, color='FF000000'),
+    top=Side(border_style=None, color='FF000000'),
+    bottom=Side(border_style=None, color='FF000000'),
+    diagonal=Side(border_style=None, color='FF000000'),
+    outline=Side(border_style=None, color='FF000000'),
+    vertical=Side(border_style=None, color='FF000000'),
+    horizontal=Side(border_style=None, color='FF000000')
+)
 
 
 class ProgramMaker:
     """
     Init
     """
-    def _init__(self, *args, **kwargs):
-        # Color
-        color_default = Color(theme=1, tint=0.0)
+    def __init__(self, comp, *args, **kwargs):
+        self.comp = comp
         # Font
-        self.font_default = Font(name='ＭＳ ゴシック',charset=128,family=3.0,b=False,i=False,strike=None,outline=None,shadow=None,condense=None,color=color_default,size=9,)
         self.font_small = Font(name='ＭＳ ゴシック',charset=128,size=6,)
         # Alignment
-        self.al_default = Alignment(shrinkToFit=None, textRotation=0, vertical='center', horizontal='center', indent=0.0, justifyLastLine=None, relativeIndent=0.0, wrapText=None, readingOrder=0.0)
         self.al_wrap = Alignment(vertical='center', horizontal='center', wrapText=True)
         self.al_left = Alignment(vertical='center', horizontal='left')
         self.al_bottom = Alignment(vertical='bottom', horizontal='center')
@@ -30,6 +54,8 @@ class ProgramMaker:
         thin = Side(border_style="thin", color="000000")
         self.border_bottom = Border(top=None, left=None, right=None, bottom=thin)
         self.border_all = Border(top=thin, left=thin, right=thin, bottom=thin)
+        event_status = EventStatus.objects.all()[0]
+        self.entry_Null = Entry(event_status=event_status, bib="", name_family="", name_first="", kana_family="", kana_first="", grade="", club="", jaaf_branch="", personal_best="", sex="M", entry_status="Entry")
 
         
     """
@@ -39,12 +65,33 @@ class ProgramMaker:
         return col+str(row)
 
 
-    def write_cell(self, cell, value, font=self.font_default, al=self.al_default, border=self.border_default):
+    def write_cell(self, cell, value, font=font_default, al=al_default, border=border_default):
         cell.value = value
         cell.font = font
         cell.alignment = al
         cell.border = border
 
+    def format_name(self, entry):
+        # 名前
+        # できるだけ5文字に近くして戻す
+        name_len_sub = 4 - len(entry.name_family)+len(entry.name_first)
+        if  name_len_sub ==  0:
+            # 4文字
+            return entry.name_family + u"\3000" + entry.name_first
+        elif  name_len_sub < 0:
+            # 4文字未満
+            name = entry.name_family
+            for i in range(0, 4 - name_len):
+                name += u"\3000"
+            return (name + u"\3000" + entry.name_first)
+        else:
+            # 5文字以上
+            return entry.name_family + entry.name_first
+
+    def format_kana(self, entry):
+        # フリガナ
+        kana = entry.kana_family + " " + entry.kana_first
+        return mojimoji.zen_to_han(kana)
 
     """
     Write Title
@@ -52,29 +99,29 @@ class ProgramMaker:
     def write_title_Track(self, ws, row, event, GR=None):
         # 種目名
         ws.merge_cells(start_row=row,start_column=1,end_row=row+2,end_column=3)
-        self.write_cell(ws.cell(row=row, column=1), GR.event)
+        self.write_cell(ws.cell(row=row, column=1), event.name)
         ws.cell(row=row, column=1).font = Font(size=24)
         # 大会記録
         if GR:        
             self.write_cell(ws.cell(row=row+1, column=4), '大会記録')
             self.write_cell(ws.cell(row=row+1, column=5), GR.mark) #記録
-            self.write_cell(ws.cell(row=row+1, column=6), GR.name) #氏名
+            self.write_cell(ws.cell(row=row+1, column=6), self.format_name(GR)) #氏名
             self.write_cell(ws.cell(row=row+1, column=7), GR.club)#所属
             self.write_cell(ws.cell(row=row+1, column=8), GR.year) #年
         return row+3
         
         
-    def write_title_HJPV(self, ws, row, GR=None):
+    def write_title_HJPV(self, ws, row, event, GR=None):
         # 種目名
         ws.merge_cells(start_row=row,start_column=1,end_row=row+2,end_column=3)
-        self.write_cell(ws.cell(row=row, column=1), GR.event)
+        self.write_cell(ws.cell(row=row, column=1), event.name)
         ws.cell(row=row, column=1).font = Font(size=24)
         # 大会記録
         if GR:
             self.write_cell(ws.cell(row=row+1, column=4), '大会記録')
             self.write_cell(ws.cell(row=row+1, column=5), GR.mark) #記録
             ws.merge_cells(start_row=row+1,start_column=6,end_row=row+2,end_column=11)
-            self.write_cell(ws.cell(row=row+1, column=6), GR.name) #氏名
+            self.write_cell(ws.cell(row=row+1, column=6), self.format_name(GR)) #氏名
             ws.merge_cells(start_row=row+1,start_column=12,end_row=row+2,end_column=16)
             self.write_cell(ws.cell(row=row+1, column=12), GR.club)#所属
             ws.merge_cells(start_row=row+1,start_column=17,end_row=row+2,end_column=19)
@@ -82,31 +129,36 @@ class ProgramMaker:
         return row+3
 
     
-    def write_title_LJTJThrow(self, ws, row, GR=None):
+    def write_title_LJTJThrow(self, ws, row, event, GR=None):
         # 種目名
         ws.merge_cells(start_row=row,start_column=1,end_row=row+2,end_column=3)
-        self.write_cell(ws.cell(row=row, column=1), GR.event)
+        self.write_cell(ws.cell(row=row, column=1), event.name)
         ws.cell(row=row, column=1).font = Font(size=24)
         # 大会記録
         if GR:
             self.write_cell(ws.cell(row=row+1, column=4), '大会記録')
             self.write_cell(ws.cell(row=row+1, column=5), GR.mark) #記録
             ws.merge_cells(start_row=row+1,start_column=6,end_row=row+2,end_column=7)
-            self.write_cell(ws.cell(row=row+1, column=6), GR.name) #氏名
+            self.write_cell(ws.cell(row=row+1, column=6), self.format_name(GR)) #氏名
             self.write_cell(ws.cell(row=row+1, column=8), GR.club)#所属
             self.write_cell(ws.cell(row=row+1, column=9), GR.year) #年                 
         return row+3
 
 
     def write_title(self, ws, row, event, GR=None):
-        # 部門        
+        # 部門
+        # GRのチェック
+        try:
+            GR = GRecord.objects.get(event=event, comp=self.comp)
+        except GRecord.DoesNotExist:
+            pass
         # エントリーを書き出し
-        if event.event_type == 'Track8' or event.event_type == 'TrackN':
-            row = self.write_title_Track(ws, row, GR)
-        elif event.event_type == 'HJPV':
-            row = self.write_title_HJPV(ws, row, GR)
-        elif event.event_type == 'LJTJT' or event.event_type == 'Throw':
-            row = self.write_title_LJTJ(ws, row, GR)       
+        if event.program_type == 'Track8' or event.program_type == 'TrackN':
+            row = self.write_title_Track(ws, row, event, GR)
+        elif event.program_type == 'HJPV':
+            row = self.write_title_HJPV(ws, row, event, GR)
+        elif event.program_type == 'LJTJ' or event.program_type == 'Throw':
+            row = self.write_title_LJTJThrow(ws, row, event, GR)       
         return row
     
     
@@ -126,42 +178,48 @@ class ProgramMaker:
         # 2行目
         self.write_cell(ws.cell(row=row, column=1), u"ﾚｰﾝ")
         self.write_cell(ws.cell(row=row, column=2), u"No.")
-        print(cell_posi(row+1, "C")+":"+cell_posi(row+1,"D"))
-        ws.merge_cells(cell_posi(row, "C")+":"+cell_posi(row,"D"))
+        print(self.cell_posi(row+1, "C")+":"+self.cell_posi(row+1,"D"))
+        ws.merge_cells(self.cell_posi(row, "C")+":"+self.cell_posi(row,"D"))
         self.write_cell(ws.cell(row=row, column=3), u"氏名") # Merged
         self.write_cell(ws.cell(row=row, column=5), u"学年")
         self.write_cell(ws.cell(row=row, column=6), u"所属")
         self.write_cell(ws.cell(row=row, column=7), u"陸協")
-        self.write_cell(ws.cell(row=row, column=8), u"所属")
+        self.write_cell(ws.cell(row=row, column=8), u"参考記録")
         self.write_cell(ws.cell(row=row, column=9), u"順位")
-        ws.merge_cells(cell_posi(row, "J")+":"+cell_posi(row,"K"))
+        ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row,"K"))
         self.write_cell(ws.cell(row=row, column=10), u"記録")
         # 次の空白行の行番号を返す
         return row+1
 
 
-    def write_head_Field(self, ws, row):
+    def write_head_Field(self, ws, row, group=None):
+        # 1行目
+        if group:
+            self.write_cell(ws.cell(row=row, column=1), str(group)+u"組")
+            row += 1
+            
+        # 2行目
         # 試技順
-        ws.merge_cells(cell_posi(row, "A")+":"+cell_posi(row+1,"A"))
+        ws.merge_cells(self.cell_posi(row, "A")+":"+self.cell_posi(row+1,"A"))
         self.write_cell(ws.cell(row=row, column=1), u"試順", al=self.al_wrap)
         # No, 学年
         self.write_cell(ws.cell(row=row, column=2), u"No.")
         self.write_cell(ws.cell(row=row+1, column=2), u"学年")
         # 氏名, フリガナ
-        ws.merge_cells(cell_posi(row, "C")+":"+cell_posi(row+1,"C"))
+        ws.merge_cells(self.cell_posi(row, "C")+":"+self.cell_posi(row+1,"C"))
         self.write_cell(ws.cell(row=row, column=3), u"氏名") # Merged
         # 所属, 陸協
         self.write_cell(ws.cell(row=row, column=4), u"所属")
         self.write_cell(ws.cell(row=row+1, column=4), u"陸協")
         # 参考記録
-        ws.merge_cells(cell_posi(row, "E")+":"+cell_posi(row+1,"E"))
+        ws.merge_cells(self.cell_posi(row, "E")+":"+self.cell_posi(row+1,"E"))
         self.write_cell(ws.cell(row=row, column=5), u"参考\n記録", al=self.al_wrap)
         return row
         
         
-    def write_head_HJPV(self, ws, row):
+    def write_head_HJPV(self, ws, row, group=None):
         # Feild共通ヘッダー
-        row = self.write_Field_head(ws,row)
+        row = self.write_head_Field(ws,row, group=group)
         # 試技
         for i in np.arange(6,33, 3):
             print(i)
@@ -169,10 +227,10 @@ class ProgramMaker:
             self.write_cell(ws.cell(row=row, column=i), "m")
         ws.cell(row=row, column=i).alignment =Alignment(vertical='bottom', horizontal='center')
         # 記録
-        ws.merge_cells(cell_posi(row, "AG")+":"+cell_posi(row+1,"AG"))
+        ws.merge_cells(self.cell_posi(row, "AG")+":"+self.cell_posi(row+1,"AG"))
         self.write_cell(ws.cell(row=row, column=33), u"記録")
         # 順位
-        ws.merge_cells(cell_posi(row, "AH")+":"+cell_posi(row+1,"AH"))
+        ws.merge_cells(self.cell_posi(row, "AH")+":"+self.cell_posi(row+1,"AH"))
         self.write_cell(ws.cell(row=row, column=34), u"順位", al=self.al_wrap)
     
         # Borderの設定
@@ -183,24 +241,23 @@ class ProgramMaker:
         return row+2
 
     
-    def write_head_LJTJThrow(self, ws, row, trial=6):
+    def write_head_LJTJThrow(self, ws, row, trial=6, group=None):
         # Feild共通ヘッダー
-        row = self.write_Field_head(ws,row)
+        row = self.write_head_Field(ws,row, group=group)
         # 試技&記録
         if trial == 6:
             cells = ["1", "2", "3",  u"3回目\nベスト", "4","5", "6",  u"記録"]
         else:
             cells = ["1", "2", "3", u"記録"]
-            for i in np.arange(6,6+len(cells),1):
-                print(i)
-        ws.merge_cells(selftart_row=row,start_column=i,end_row=row+1,end_column=i)
-        self.write_cell(ws.cell(row=row, column=i), cells[i-6], al=self.al_wrap)
+        for i in np.arange(6,6+len(cells),1):
+            ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i)
+            self.write_cell(ws.cell(row=row, column=i), cells[i-6], al=self.al_wrap)
         # 順位
         if trial == 6:
-            ws.merge_cells(cell_posi(row, "N")+":"+cell_posi(row+1,"N"))
+            ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
             self.write_cell(ws.cell(row=row, column=14), u"順位", al=self.al_wrap)
         else:
-            ws.merge_cells(cell_posi(row, "J")+":"+cell_posi(row+1,"J"))
+            ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
             self.write_cell(ws.cell(row=row, column=10), u"順位", al=self.al_wrap)
         
         # Borderの設定
@@ -218,13 +275,13 @@ class ProgramMaker:
     """
     def write_row_Track(self, ws, row, entry, lane):
         self.write_cell(ws.cell(row=row, column=1), lane)
-        self.write_cell(ws.cell(row=row, column=2), entry["bib"])
-        self.write_cell(ws.cell(row=row, column=3), entry["name"])
-        self.write_cell(ws.cell(row=row, column=4), entry["kana"])
-        self.write_cell(ws.cell(row=row, column=5), entry["grade"])
-        self.write_cell(ws.cell(row=row, column=6), entry["club"])
-        self.write_cell(ws.cell(row=row, column=7), entry["jaaf_branch"])
-        self.write_cell(ws.cell(row=row, column=8), entry["PB"])
+        self.write_cell(ws.cell(row=row, column=2), entry.bib)
+        self.write_cell(ws.cell(row=row, column=3), self.format_name(entry))
+        self.write_cell(ws.cell(row=row, column=4), self.format_kana(entry))
+        self.write_cell(ws.cell(row=row, column=5), entry.grade)
+        self.write_cell(ws.cell(row=row, column=6), entry.club)
+        self.write_cell(ws.cell(row=row, column=7), entry.jaaf_branch)
+        self.write_cell(ws.cell(row=row, column=8), format_mark(entry.personal_best, entry.event_status.event))
         # 記録欄
         self.write_cell(ws.cell(row=row, column=9), "(   )")
         ws.cell(row=row, column=9).border = self.border_bottom
@@ -236,34 +293,34 @@ class ProgramMaker:
 
     def write_row_Field(self, ws,row, entry, order):
         # 試技順
-        ws.merge_cells(cell_posi(row, "A")+":"+cell_posi(row+1,"A"))
+        ws.merge_cells(self.cell_posi(row, "A")+":"+self.cell_posi(row+1,"A"))
         self.write_cell(ws.cell(row=row, column=1), order)
         # No, 学年
-        self.write_cell(ws.cell(row=row, column=2), entry["bib"])
-        self.write_cell(ws.cell(row=row+1, column=2), entry["grade"])
+        self.write_cell(ws.cell(row=row, column=2), entry.bib)
+        self.write_cell(ws.cell(row=row+1, column=2), entry.grade)
         # 氏名
-        self.write_cell(ws.cell(row=row, column=3), entry["name"])
-        self.write_cell(ws.cell(row=row+1, column=3), entry["kana"])
+        self.write_cell(ws.cell(row=row, column=3), self.format_name(entry))
+        self.write_cell(ws.cell(row=row+1, column=3), self.format_kana(entry))
         # 所属, 陸協
-        self.write_cell(ws.cell(row=row, column=4), entry["club"])
-        self.write_cell(ws.cell(row=row+1, column=4), entry["jaaf_branch"])
+        self.write_cell(ws.cell(row=row, column=4), entry.club)
+        self.write_cell(ws.cell(row=row+1, column=4), entry.jaaf_branch)
         # 参考記録
-        ws.merge_cells(cell_posi(row, "E")+":"+cell_posi(row+1,"E"))
-        self.write_cell(ws.cell(row=row, column=5), entry["PB"])
+        ws.merge_cells(self.cell_posi(row, "E")+":"+self.cell_posi(row+1,"E"))
+        self.write_cell(ws.cell(row=row, column=5), format_mark(entry.personal_best, entry.event_status.event))
         return row
 
     
             
     def write_row_HJPV(self, ws, row, entry, order):
         # Field 共通ヘッダー
-        row = self.write_Field_head(ws, entry, order)
+        row = self.write_row_Field(ws, row, entry, order)
         # 試技
         for i in np.arange(6,33, 1):
             ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i)
         # 記録
-        ws.merge_cells(cell_posi(row, "AG")+":"+cell_posi(row+1,"AG"))
+        ws.merge_cells(self.cell_posi(row, "AG")+":"+self.cell_posi(row+1,"AG"))
         # 順位
-        ws.merge_cells(cell_posi(row, "AH")+":"+cell_posi(row+1,"AH"))
+        ws.merge_cells(self.cell_posi(row, "AH")+":"+self.cell_posi(row+1,"AH"))
         
         # Borderの設定
         for i in range(1,35):
@@ -274,7 +331,7 @@ class ProgramMaker:
 
     def write_row_LJTJ(self, ws, row, entry, order, trial=6):
         # Field 共通ヘッダー
-        row = self.write_Field_head(ws, entry, order)
+        row = self.write_row_Field(ws, row, entry, order)
         # 試技&記録
         if trial == 6: cell_end = 14
         else: cell_end = 10
@@ -282,8 +339,8 @@ class ProgramMaker:
             self.write_cell(ws.cell(row=row, column=i), "m", font=self.font_small)
             self.write_cell(ws.cell(row=row+1, column=i), "＋･－", font=self.font_small, al=self.al_left)        
         # 順位
-        if trial == 6: ws.merge_cells(cell_posi(row, "N")+":"+cell_posi(row+1,"N"))
-        else: ws.merge_cells(cell_posi(row, "J")+":"+cell_posi(row+1,"J"))
+        if trial == 6: ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
+        else: ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
         
         # Borderの設定
         for i in range(1,cell_end+1):
@@ -293,6 +350,8 @@ class ProgramMaker:
 
     
     def write_row_Throw(self, ws, row, entry, order, trial=6):
+        # Field 共通ヘッダー
+        row = self.write_row_Field(ws, row, entry, order)
         # 試技&記録
         if trial == 6: cell_end = 14
         else: cell_end = 10
@@ -300,8 +359,8 @@ class ProgramMaker:
             ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i)
             self.write_cell(ws.cell(row=row, column=i), "m", al=self.al_bottom)
         # 順位
-        if trial == 6: ws.merge_cells(cell_posi(row, "N")+":"+cell_posi(row+1,"N"))
-        else: ws.merge_cells(cell_posi(row, "J")+":"+cell_posi(row+1,"J"))
+        if trial == 6: ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
+        else: ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
         
         # Borderの設定
         for i in range(1,cell_end+1):
@@ -313,97 +372,130 @@ class ProgramMaker:
     """
     Write Group
     """
-    def write_group_lane8(self, ws, row,  df, group=False, wind=True):
+    def write_group_lane8(self, ws, row,  entries, group=False, wind=True):
         # Params
         # - ws: worksheet
         # - row: 書き込み開始行番号
-        # - df: dataFrame
+        # - entries: QuerySet of Entry Objects        
 
         # Header
-        row = self.write_track_head(ws, row, group)
+        row = self.write_head_Track(ws, row, group)
         # エントリーの書き込み
         c = 0
         for i in [0,1,2,3,4,5,6,7]:
-            row = self.write_track_row(ws, row, df.ix[i,:].to_dict(), i+1)
+            try:
+                entry = entries.get(order_lane=i+1)
+            except Entry.DoesNotExist:
+                entry = self.entry_Null
+            row = self.write_row_Track(ws, row, entry, i+1)
             c += 1
         # Finish
         print("> Write_group_lane8: write ", str(c), " entries")
-        return row            
+        return row       
 
             
     # 長距離&補欠用
-    def write_group_laneN(self, ws, row,  df, group=False, wind=True):
+    def write_group_laneN(self, ws, row,  entries, group=False, wind=True):
         # Params
         # - ws: worksheet
         # - row: 書き込み開始行番号
-        # - df: dataFrame
+        # - entries: QuerySet of Entry Objects
         
         # Header
         row = self.write_head_Track(ws, row, group=group, wind=wind)
         # エントリーの書き込み
         c = 0
-        for i in np.arange(0, len(df), 1):
-            row = self.write_row_track(ws, row+i, df.ix[i,:].to_dict(), i+1)
+        for i in np.arange(0, len(entries), 1):
+            try:
+                entry = entries.get(order_lane=i+1)
+            except Entry.DoesNotExist:
+                entry = self.entry_Null
+            row = self.write_row_Track(ws, row+i, entry, i+1)
             c += 1
         # Finish
         print("> Write_group_laneN: write ", str(c), " entries")
         return row
 
 
-    def write_group_HJPV(self, ws, row,  df):
+    def write_group_HJPV(self, ws, row,  entries, group=False):
         # Header
-        row = self.write_HJPV_head(ws, row)
+        row = self.write_head_HJPV(ws, row)
         # エントリーの書き込み
         c = 0
-        for i in import numpy as np.arange(0, len(df), 1):
-            row = self.write_HJPV_row(ws, row, df.ix[i,:].to_dict(), i+1)
+        for i in np.arange(0, len(entries), 1):
+            try:
+                entry = entries.get(order_lane=i+1)
+            except Entry.DoesNotExist:
+                entry = self.entry_Null
+            row = self.write_row_HJPV(ws, row, entry, i+1)
             c += 1
         # Finish
         print("> Write_group_HJPV: write ", str(c), " entries")
         return row
 
 
-    def write_group_LJTJ(self, ws, row,  df, trial=6):
+    def write_group_LJTJ(self, ws, row,  entries, trial=None, group=False):
+        # Trial
+        if not trial:
+            try:
+                entry = entries.get(order_lane=1)
+                if entry.event_status.section == 'VS': trial = 6
+                else: trial = 3
+            except Entry.DoseNotExist:
+                pass
         # Header
-        row = self.write_LJTJ_head(ws, row, trial=trial)
+        row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
         # エントリーの書き込み
         c = 0
-        for i in np.arange(0, len(df), 1):
-            row = self.write_LJTJ_row(ws, row, df.ix[i,:].to_dict(), i+1, trial=trial)
+        for i in np.arange(0, len(entries), 1):
+            try:
+                entry = entries.get(order_lane=i+1)
+            except Entry.DoesNotExist:
+                entry = self.entry_Null            
+            row = self.write_row_LJTJ(ws, row, entry, i+1, trial=trial)
             c += 1
         # Finish
         print("> Write_group_LJTJ: write ", str(c), " entries")            
         return row
 
             
-    def write_group_Throw(self, ws, row,  df, trial=6):
+    def write_group_Throw(self, ws, row,  entries, trial=6, group=False):
         # Header
-        row = self.write_LJTJThrow_head(ws, row, trial=trial)
+        row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
         # エントリーの書き込み
         c = 0
-        for i in np.arange(0, len(df), 1):
-            row = self.write_Throw_row(ws, row, df.ix[i,:].to_dict(), i+1, trial=trial)
+        for i in np.arange(0, len(entries), 1):
+            try:
+                entry = entries.get(order_lane=i+1)
+            except Entry.DoesNotExist:
+                entry = self.entry_Null            
+            row = self.write_row_Throw(ws, row, entry, i+1, trial=trial)
             c += 1
         # Finish
         print("> Write_group_Throw: write ", str(c), " entries")               
-        return row        
+        return row       
 
     
     def write_groups(self, ws, row, event, Entries):
-        groups = Entries.values('group').annotate(cnt=Count("*"),)        
-        for gorup in groups:
-            entries_g = Entries.filter(group=group["group"]).order_by('order_lane')
+        groups = Entries.values_list('group', flat=True).order_by('group').distinct()
+        for group in groups:
+            # 組数が負の場合は書き出さない
+            if group < 1: continue
+            
+            entries_g = Entries.filter(group=group).order_by('order_lane')
             # エントリーを書き出し
-            if event.event_type == 'Track8':
-                row = self.write_group_lane8(ws, row, entries_g, group=group["group"], wind=event.wind)
-            elif event.event_type == 'TrackN':
-                row = self.write_group_laneN(ws, row, entries_g, group=group["group"], wind=event.wind)
-            elif event.event_type == 'HJPV':
-                row = self.write_group_laneN(ws, row, entries_g, group=group["group"], wind=event.wind)
-            elif event.event_type == 'LJTJ':
-                row = self.write_group_laneN(ws, row, entries_g, group=group["group"], wind=event.wind)
-            elif event.event_type == 'Throw':
-                row = self.write_group_laneN(ws, row, entries_g, group=group["group"], wind=event.wind)                        
+            if event.program_type == 'Track8':
+                row = self.write_group_lane8(ws, row, entries_g, group=group, wind=event.wind)
+            elif event.program_type == 'TrackN':
+                row = self.write_group_laneN(ws, row, entries_g, group=group)
+            elif event.program_type == 'HJPV':
+                row = self.write_group_HJPV(ws, row, entries_g, group=group)
+            elif event.program_type == 'LJTJ':
+                row = self.write_group_LJTJ(ws, row, entries_g, group=group)
+            elif event.program_type == 'Throw':
+                row = self.write_group_Throw(ws, row, entries_g, group=group)
+            # 1組書いた後は2行開ける
+            row += 2
         return row
 
     
@@ -411,7 +503,7 @@ class ProgramMaker:
     Sheet Styling
     """
     # Track
-    def style_track(self, ws, row):
+    def style_Track(self, ws, row):
         # Params
         # - ws: worksheet
         # - row: The last row number of the page you edit (type=int)
@@ -445,7 +537,7 @@ class ProgramMaker:
         for t in [chr(i) for i in range(65+5,65+26)]: # F - Z
             ws.column_dimensions[t].width = col_width_2
         for t in ["A"+chr(i) for i in range(65,65+6)]: #  AA- AF
-            ws.column_dimensions[t]self.width = col_width_2
+            ws.column_dimensions[t].width = col_width_2
         return row
     
             
@@ -476,7 +568,7 @@ class ProgramMaker:
         elif event.program_type == 'HJPV':
             return self.style_LJThrow(ws, row)
         elif event.program_type == 'LJTJ' or event.program_type == 'Throw':
-            return self.style_LJThrow(ws, row)
+            return self.style_LJTJThrow(ws, row)
 
         
     def check_page(self, row, entry_num, type, title=True, ):
@@ -512,20 +604,20 @@ class ProgramMaker:
     """
     def write_class(self, ws, row, class_name):
         # 部門名を書き出し
-        ws.merge_cells(start_row=row,start_column=1,end_row=row,end_column=1)
-        self.self.write_cell(ws.cell(row=row, column=1), "< "+class_name+" >")
-        self.ws.cell(row=row, column=1).alignment = self.al_left
+        ws.merge_cells(start_row=row,start_column=1,end_row=row,end_column=3)
+        self.write_cell(ws.cell(row=row, column=1), "< "+class_name+" >")
+        ws.cell(row=row, column=1).alignment = self.al_left
         return row+1
         
-    def write_event(self, ws, event,GR=None,VS=False,Sub=False,OP=False):
+    def write_event(self, ws, row, event, GR=None,VS=False,Sub=False,OP=False):
         # Params
-        # - ws: Worksheet
+        # - ws/row: Worksheet, 行番号
         # - event: Eventオブジェクト
         # - GR: 大会記録オブジェクト
         # - VS,SUb, OP: Entryオブジェクト(対校, 補欠, OP)
 
         # Title
-        row = self.write_title(ws, event, GR)
+        row = self.write_title(ws, row, event, GR)
 
         # 部門&レコード書き出し
         ## 対校
@@ -577,7 +669,7 @@ class ProgramMaker:
             print(e, "@cardinal_write_sheet_by_name")
 
         # 書き出し
-        row = self.write_event(ws, event, VS=VS, Sub=Sub, OP=OP)
+        row = self.write_event(ws, row, event, VS=VS, Sub=Sub, OP=OP)
         return row
         
 
@@ -605,18 +697,18 @@ class ProgramMaker:
         else: OP = None
         
         # 書き出し
-        row = self.write_event(ws, event, VS=VS, Sub=Sub, OP=OP)
+        row = self.write_event(ws, row, event, VS=VS, Sub=Sub, OP=OP)
         return row
 
 
-    def cardinal_create_sheet_by_event(self, wb, event, sheet_name=None):
+    def cardinal_create_sheet_by_event(self, wb, comp, event, sheet_name=None):
         # Create Sheet
         ws = wb.create_sheet()
         row = 1
         if sheet_name: ws.title = sheet_name
 
         # 書き出し
-        row = self.cardinal_write_by_event(ws, row, event) 
+        row = self.cardinal_write_by_event(ws, row, comp, event) 
         # シートのスタイリング
         row = self.style_sheet(ws, row, event)
 
@@ -641,16 +733,36 @@ class ProgramMaker:
         print("Success: write Excel Sheet of ", str(event))
         return True    
 
-    def cardinal_create_workbook_by_event(self, event):
+    
+    def cardinal_create_workbook_by_event(self, comp, event):
         # Create new Workbook
         wb = px.Workbook()
         ws = wb.active
         ws.title = 'None'
 
         #書き出し
-        self.cardinal_create_sheet_by_event(wb, event, sheet_name=str(event))
+        sheet_name = event.sex+event.name
+        self.cardinal_create_sheet_by_event(wb, comp, event, sheet_name=sheet_name)
+
+        ws = wb.get_sheet_by_name('None')
+        wb.remove_sheet(ws)
         # 完了
         return wb
         
-        
-        
+    
+    
+    def cardinal_create_workbook_by_event_status(self, comp, event_status):
+        # Create new Workbook
+        wb = px.Workbook()
+        ws = wb.active
+        ws.title = 'None'
+
+        #書き出し
+        event = event_status.event
+        sheet_name = event_status.section + event.sex + event.name
+        self.cardinal_create_sheet_by_event_status(wb, event_status, sheet_name=sheet_name)
+
+        ws = wb.get_sheet_by_name('None')
+        wb.remove_sheet(ws)
+        # 完了
+        return wb        

@@ -1,6 +1,8 @@
 import logging
 import numpy as np
 from datetime import datetime
+import io
+import openpyxl
 
 from django.forms import formset_factory, modelformset_factory, BaseFormSet
 from django.shortcuts import render, get_object_or_404, redirect
@@ -14,7 +16,9 @@ from competitions.models import Comp, Event, EventStatus
 
 from organizer.models import Entry
 from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditForm, EntryUploadFileForm
+
 from organizer.upload import EntryHandler
+from organizer.myprogram import ProgramMaker
 
 
 
@@ -185,9 +189,20 @@ def sl_top(request, event_status_id=None):
     else:
         # 種目が指定されていない場合は実施種目一覧を表示
         event_statuss = EventStatus.objects.filter(comp=comp)
+        event_ids = event_statuss.values_list('event', flat=True).order_by('event').distinct()
+        events = Event.objects.filter(id__in=event_ids).order_by('name')
+        # 種目別スタートリストを出力可能か判定
+        event_list = []
+        for event in events:
+            event_statuss_2 = EventStatus.objects.filter(comp=comp, event=event)
+            flg = True
+            for event_status in event_statuss_2:
+                if event_status.start_list == False: flg = False
+            event_list.append({'event': event, 'SL': flg})
+            
         return render(request,
                       'organizer/SL.html',
-                      {'mode': "event", 'comp': comp, 'event_statuss': event_statuss})
+                      {'mode': "event", 'comp': comp, 'event_statuss': event_statuss, 'event_list': event_list})
     
 """
 SL 組,レーン試技順　編集ページ
@@ -236,4 +251,29 @@ def sl_web(request, event_status_id):
 
     return render(request,
                   'organizer/SL_web.html',
-                  {'comp': comp, 'event_status': event_status, 'groups':groups})    
+                  {'comp': comp, 'event_status': event_status, 'groups':groups})
+
+
+"""
+SL スタートリスト Excelダウンロード
+"""
+def sl_excel(request, sl_type=None, pk=None):
+    comp = get_comp(request)
+    PM = ProgramMaker(comp)
+    
+    # ダウンロード
+    # Excel 作成
+    if sl_type == "event":
+        event = get_object_or_404(Event, pk=pk)
+        wb = PM.cardinal_create_workbook_by_event(comp, event)
+    elif sl_type == "event_status":
+        event_status = get_object_or_404(EventStatus, pk=pk)
+        event = event_status.event
+        wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
+    # 保存
+    output = io.BytesIO()
+    wb.save(output)
+    # Response
+    response = HttpResponse(output.getvalue(), content_type="application/excel")
+    response["Content-Disposition"] = "filename="+event.sex+event.name+".xlsx"
+    return response

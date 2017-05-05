@@ -22,10 +22,13 @@ def format_mark(value, event):
             else: out += str(num1)
         if event.separator_2: out+=str(num2)+event.separator_2
         else: out += str(num2)
-        if event.separator_3: out+=str(num3)+event.separator_3
-        else: out += str(num3)
+        if event.separator_3:
+            if not num3 == 0: out+=str(num3)+event.separator_3
+            else: out+= "00"+event.separator_3
+        else:
+            if not num3 == 0: out+=str(num3)
+            else: out+= "00"
         return out
     # 6桁で入力されていない場合
     return value
-
 

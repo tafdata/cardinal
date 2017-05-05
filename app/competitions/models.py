@@ -101,17 +101,17 @@ class Event(models.Model):
         choices=PROGRAM_TYPE_CHOICES,
         default='Track8',
     )
-    wind = models.BooleanField(default=False)
+    wind = models.BooleanField(default=True)
     separator_1 = models.CharField(max_length=4, blank=True)
     separator_2 = models.CharField(max_length=4, blank=True)
     separator_3 = models.CharField(max_length=4, blank=True)
-    
+    start_list_priority = models.IntegerField(default=100000)      # プログラム記載順
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name+"["+str(self.sex)+"]"
+        return str(self.sex)+self.name
 
     
     class Meta:
@@ -142,6 +142,7 @@ class EventStatus(models.Model):
         choices=ROUND_CHOICES,
         default='Final',
     )
+    start_list = models.BooleanField(default=False)  # スタートリストを出力
     
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -157,6 +158,28 @@ class EventStatus(models.Model):
     
     
     
+
+"""
+GR 大会記録
+"""
+class GR(models.Model):
+    id = models.AutoField(primary_key=True)
+    comp = models.ForeignKey('Comp')
+    event = models.ForeignKey('Event')
+    mark = models.CharField(max_length=6, blank=True)
+    name_family = models.CharField("family name", max_length=64, help_text="姓")
+    name_first = models.CharField("first name", max_length=64, help_text="名")
+    club  = models.CharField(max_length=256, blank=True, help_text="ex. 大阪大")
+    year = models.IntegerField(default=-1) # レーン/試技順
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     
+    def __str__(self):
+        return "GR_"+str(self.comp)+str(self.event)
+    
+    class Meta:
+        unique_together = ('comp', 'event')
 
 

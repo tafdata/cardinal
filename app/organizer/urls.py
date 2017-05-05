@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^sl/(?P<event_status_id>\d+)/$', views.sl_top, name='sl_top'),
     url(r'^sl/edit/(?P<event_status_id>\d+)/$', views.sl_edit, name='sl_edit'),
     url(r'^sl/web/(?P<event_status_id>\d+)/$', views.sl_web, name='sl_web'),
+    url(r'^sl/excel/(?P<sl_type>\S+)/(?P<pk>\d+)/$', views.sl_excel, name='sl_excel'),
 ]

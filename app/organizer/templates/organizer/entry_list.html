@@ -56,14 +56,13 @@
 										<div class="card-block">
 												<h4 class="card-title">新規エントリー</h4>
 												<a href="{% url 'organizer:entry_add' %}" class="card-link">個別登録</a>
-												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">一括登録</a>
+												<a href="{% url 'organizer:entry_add_by_file' %}" class="card-link">一括登録(CSV経由)</a>
 										</div>
 								</div>
 								<div class="card mb-3">
 										<div class="card-block">
 												<h4 class="card-title">スタートリスト</h4>
-												<a href="{% url 'organizer:entry_add' %}" class="card-link">スタートリスト表示</a>
-												<a href="{% url 'organizer:sl_top' %}" class="card-link">番組編成</a>
+												<a href="{% url 'organizer:sl_top' %}" class="card-link">スタートリスト</a>
 										</div>
 								</div>
 						</div>
