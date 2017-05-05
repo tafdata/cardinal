@@ -45,3 +45,4 @@ wcwidth==0.1.7
 widgetsnbextension==1.2.6
 
 mojimoji
+openpyxl

@@ -28,6 +28,7 @@ ORDER_CHOICES = (
 SECTION_CHOICES = (
     ('VS', '対校'),
     ('OP', 'OP'),
+    ('Sub', '補欠'),
     ('TT', '記録会'),
     ('XX', 'その他'),
 )
@@ -38,6 +39,16 @@ ROUND_CHOICES = (
     ('Semifinal', 'Semifinal'),
     ('Final', 'Final'),
 )
+PROGRAM_TYPE_CHOICES = (
+    ('Track8', 'トラック(セパレートスタート)'),
+    ('TrackN', 'トラック(オープンレーンスタート)'),
+    ('HJPV', '走高跳,棒高跳'),
+    ('LJTJ', '走幅跳,三段跳'),
+    ('Throw', '投擲競技'),
+)
+    
+
+
 
 ####################################
 ## Models
@@ -85,15 +96,22 @@ class Event(models.Model):
         choices=ORDER_CHOICES,
         default='ASC',
     )
+    program_type =  models.CharField(
+        max_length=8,
+        choices=PROGRAM_TYPE_CHOICES,
+        default='Track8',
+    )
+    wind = models.BooleanField(default=False)
     separator_1 = models.CharField(max_length=4, blank=True)
     separator_2 = models.CharField(max_length=4, blank=True)
     separator_3 = models.CharField(max_length=4, blank=True)
+    
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name+"["+self.sex+"]"
+        return self.name+"["+str(self.sex)+"]"
 
     
     class Meta:
@@ -114,7 +132,7 @@ class EventStatus(models.Model):
         default='lock',
     )   # entry/result/on_going
     section = models.CharField(
-        max_length=2,
+        max_length=4,
         choices=SECTION_CHOICES,
         default='OP',
     ) # 対校/OP

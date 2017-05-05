@@ -16,7 +16,7 @@ coach/static/js/moment/
 # Files
 demo_data/*
 !demo_data/README.md
-
+.xlsx
 
 
 

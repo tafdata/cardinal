@@ -50,13 +50,4 @@ def zen_to_han(value):
 
 
 
-"""
-記録の表示形式の変換
-"""
-@register.filter(name='mark')
-def mark(value, event):
-    print(event)
-    return str(value)+"["+event+"]"
-
-
 

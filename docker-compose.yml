@@ -37,6 +37,6 @@ services:
       - ./app:/code
     ports:
       - "7000:8000"
-      - "8888:8888"
+      - "7777:8888"
     depends_on:
       - db
