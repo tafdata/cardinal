@@ -46,3 +46,4 @@ widgetsnbextension==1.2.6
 
 mojimoji
 openpyxl
+mkdocs

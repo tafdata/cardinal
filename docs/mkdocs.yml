@@ -1,0 +1,8 @@
+site_name: Cardinal System
+pages:
+  - Home: index.md
+  - About: about.md
+  - SetUp: setup.md
+  - '運営マニュアル':
+      - '競技者係': ./manual/reception.md
+theme: readthedocs    
