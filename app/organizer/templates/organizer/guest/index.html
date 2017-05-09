@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
+
+{% block title %}ゲストページ|CardinalSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">
+				<h3 class="page-header">{{ comp.name }} | ゲストページ</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				<!-- Main -->
+				<div class="row">
+						<div class="col-12">
+								<!-- 実施種目の一覧 -->
+								<div class="card my-3">
+										<div class="card-header">
+												<h2 class="card-title">当日エントリー及び棄権の受付</h2>
+												<h6 class="card-subtitle text-muted">エントリーまたは棄権する種目と操作を以下から選択してください.</h6>
+										</div>
+										<div class="card-block">
+												<h4 class="card-title">実施種目<small class="text-muted">{{ comp.name }}</small></h4>
+												<h6 class="card-subtitle mb-2 text-muted"></h6>
+												{% table_event_status comp user %}
+										</div>
+										<div class="card-footer text-muted">
+										</div>
+								</div>
+						</div>
+						<a href="{% url 'organizer:organizer_top'  %}" class="btn btn-secondary">戻る</a>
+				</div>
+		</div>
+</div>
+
+
+
+
+
+{% endblock content %}

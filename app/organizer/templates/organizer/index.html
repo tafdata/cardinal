@@ -5,7 +5,6 @@
 {% block content %}
 <div class="row">
 		<div class="col-lg-10 offset-lg-1">				
-				<h3 class="page-header">大会運営ツール</h3>
 				<!-- Alert -->
 				{% if comp_selected %}
 				<div class="alert alert-info" role="alert">
@@ -17,33 +16,31 @@
 				</div>
 				{% endif %}
 				<!-- Main -->
-				<h4>エントリー関係</h4>
 				<div class="row">
 						<div class="col-sm-6">
 								<div class="card">
 										<div class="card-block">
-												<h4 class="card-title">エントリー状況確認</h4>
-												<h6 class="card-subtitle mb-2 text-muted">登録されたエントリー</h6>
-												<p class="card-text">エントリー状態の更新は、まずこのページで大会を選択してください.</p>
-												<a href="{% url 'organizer:entry_list' %}" class="card-link">エントリー状況の確認</a>
+												<h4 class="card-title">Cardinal Systemへようこそ</h4>
+												<p class="card-text">まずこのページで大会を選択してください.</p>
 										</div>
 								</div>
 						</div>
 						<div class="col-sm-6">
 								<div class="card">
 										<div class="card-block">
-												<h4 class="card-title">新規登録</h4>
-												<h6 class="card-subtitle mb-2 text-muted">大会を新規</h6>
-												<p class="card-text">以下のリンクより管理画面に入り、右上の「COMPを追加」をクリック</p>
-												<a href="http://localhost:7000/admin/competitions/comp/" class="card-link">新規登録</a>
+												<h4 class="card-title">ページ</h4>
+												<a href="{% url 'login' %}" class="card-link">ログイン</a>
+												<a href="{% url 'organizer:organizer_top' %}" class="card-link">運営者ページ</a>
+												<a href="{% url 'organizer:guest_top' %}" class="card-link">ゲストページ</a>
 										</div>
 								</div>
 						</div>
 				</div>
-				<h4 class="mt-3">大会の選択</h4>
+		</div>
+		<div class="col-lg-10 offset-lg-1 mt-3">
 				<div class="card">
-						<div class="card-block">
-								<h4 class="card-title">大会一覧</h4>
+						<div class="card-header">
+								<h4 class="card-title">運営する大会の選択</h4>
 								<h6 class="card-subtitle mb-2 text-muted">運営する大会を以下より選択してください。</h6>
 						</div>
 						<div class="card-block">
@@ -81,8 +78,6 @@
 
 																{% if request.session.comp_code  == comp.code %}
 																<a href="{% url 'competitions:event_status_list'  comp_code=comp.code %}" class="btn btn-secondary btn-sm mx-1 my-1">競技種目一覧</a>
-																<a href="{% url 'organizer:entry_list' %}" class="btn btn-secondary btn-sm mx-1 my-1">Entry Manager</a>
-																<a href="{% url 'organizer:sl_top' %}" class="btn btn-secondary btn-sm mx-1 my-1">スタートリスト</a>
 																{% endif %}
 
 														</td>
@@ -92,7 +87,6 @@
 								</table>
 						</div>
 						<div class="card-footer text-muted">
-								2 days ago
 						</div>
 				</div>	
 

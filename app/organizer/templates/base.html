@@ -3,7 +3,7 @@
 <html lang="{{ LANGUAGE_CODE|default:'ja' }}">
 		<head>
 				<meta charset="UTF-8">
-				<title>{% block title %}Accounts{% endblock %}</title>
+				<title>{% block title %}Organizer{% endblock %}</title>
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 				<!-- Javascript -->
@@ -21,24 +21,30 @@
 						<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
 								<span class="navbar-toggler-icon"></span>
 						</button>
-						<a class="navbar-brand" href="#">Cardinal</a>
+						<a class="navbar-brand" href="{% url 'organizer:index' %}">Cardinal</a>
 						<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
 								<div class="navbar-nav">
-										<a class="nav-item nav-link" href="#">#1</a>
-										<a class="nav-item nav-link" href="#">#2<span class="sr-only">(current)</span></a>
-										<a class="nav-item nav-link" href="#">#3</a>
-										<a class="nav-item nav-link" href="#">#4</a>
-										<a class="nav-item nav-link" href="#">#5</a>
+										<a class="nav-item nav-link" href="{% url 'organizer:organizer_top' %}">運営者</a>
+										<a class="nav-item nav-link" href="{% url 'organizer:guest_top' %}">ゲスト</a>
 								</div>
 						</div>
 				</nav>
-				<div class="container-fluid w-100" style="overflow:auto;">
+				<div class="container-fluid w-100 pb-3" style="overflow:auto;">
 						<nav class="navbar navbar-light mt-3">
 								<a class="navbar-brand" href="#">Spacing</a>
 						</nav>
 						{% block content %}
 						{{ content }}
 						{% endblock %}
+				</div>
+				<!-- Footer -->
+				<div class="container-fluid w-100" style="overflow:auto;">
+						<div class="row bg-inverse py-3">
+								<div class="col-12  text-white px-5 d-flex justify-content-center">
+										<span class="px-3" style="font-size: 2em;">T.A.F. Data</span>
+										<img src="{% static 'img/taf_logo.gif' %}" class="px-2" style="height:3em;">
+								</div>
+						</div>
 				</div>
 		</body>
 </html>

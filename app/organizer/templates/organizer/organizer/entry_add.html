@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
+{% block title %}エントリー|運営|CardinalSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">
+				<h3 class="page-header">運営者ページ</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info:</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!:</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				{% if msg %}
+				<div class="alert alert-danger" role="alert">
+						<strong>Error:</strong> {{ msg }}
+				</div>
+				{% endif %}
+
+				<!-- 個別エントリーフォーム -->
+				{% entry_add_single event_status submit_url %}
+		</div>	
+</div>
+{% endblock content %}

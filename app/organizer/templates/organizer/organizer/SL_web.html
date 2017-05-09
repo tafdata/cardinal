@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
+{% block title %}SL|運営者|CardinalSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">Start List Web版</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				<!-- Main -->
+				<div class="row">
+						<div class="col-12">
+								<!-- エントリーの一覧 -->
+								<div class="card my-3">
+										<div class="card-header">
+												<h6 class="card-subtitle mb-2 text-muted">{{ comp.name }}</h6>
+												<h4 class="card-title">
+														{{ event_status.section|race_section_to_ja  }}
+														{{ event_status.event.sex|sex_to_ja }}
+														{{ event_status.event.name }}
+												</h4>
+												<div class="card-text">
+														<p>大会記録: </p>
+												</div>
+										</div>
+										<div class="card-block">
+												{% start_list_web comp event_status user %}
+										</div>
+										<div class="card-footer">										
+												<a href="{% url 'organizer:organizer_SL_edit' event_status_id=event_status.id %}" class="card-link">番組編成</a>
+												<a href="{% url 'organizer:organizer_SL_update' event_status_id=event_status.id %}" class="card-link">SLを確定させる</a>
+												<a href="{% url 'organizer:sl_excel' sl_type='event_status'  pk=event_status.id %}" class="card-link">Excel版をダウンロード</a>
+												<a href="{% url 'organizer:organizer_top' %}" class="card-link">種目選択へ戻る</a>
+										</div>										
+								</div>								
+								<a href="{% url 'organizer:organizer_top' %}" class="btn btn-secondary">戻る</a>
+						</div>
+				</div>
+		</div>
+</div>
+{% endblock content %}

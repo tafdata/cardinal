@@ -1,0 +1,144 @@
+<!-- エントリーの一覧 -->
+<form action="{% url 'organizer:sl_edit' event_status_id=event_status.id %}" method="post" role="form">						
+		{% csrf_token %}
+		{{ formset.management_form }}
+		<div class="card my-3">
+				<div class="card-header">
+						<h4 class="card-title">番組編成　編集</h4>
+						<h6 class="card-subtitle mb-2 text-muted">
+								<small class="text-muted">[{{ event_status.section }}]</small>
+								{{ event_status.event.sex }} {{ event_status.event.name }}
+						</h6>
+				</div>
+				<!-- 番組編成済み -->
+				<div class="card-block">
+						<h5>番組編成　済み</h5>
+						<table class="table table-striped table-sm">
+								<thead>
+										<tr>
+												<th style="width: 5em;">組</th>
+												<th style="width: 5em;">レーン/試技順</th>
+												<th>No.</th>
+												<th>氏名</th>
+												<th>フリガナ</th>
+												<th>所属</th>
+												<th>参考記録</th>
+												<th>Status</th>
+										</tr>
+								</thead>
+								<tbody>
+										{% for form in formset %}
+										{% if  form.group.value > 0 %}
+										{{ form.id }}
+										{{ form.bib }}
+										{{ form.name }}
+										{{ form.kana }}
+										{{ form.grade }}
+										{{ form.club }}
+										{{ form.pb }}
+										{{ form.status }}
+										<tr>
+												<td>{{ form.group }}</td>
+												<td>{{ form.order_lane }}</td>
+												<td>{{ form.bib.value }}</td>
+												<td>{{ form.name.value }} ({{ form.grade.value}})</td>
+												<td><small>{{ form.kana.value }}</small></td>
+												<td>{{ form.club.value }}</td>
+												<td>{% format_mark form.pb.value  event_status.event %}</td>
+												<td>{{ form.status.value }}</td>
+										</tr>
+										{% endif %}
+										{% endfor %}
+								</tbody>
+						</table>
+				</div>
+				<!-- 補欠 -->
+				<div class="card-block">
+						<h5>番組編成　済み</h5>
+						<table class="table table-striped table-sm">
+								<thead>
+										<tr>
+												<th style="width: 5em;">組</th>
+												<th style="width: 5em;">レーン/試技順</th>
+												<th>No.</th>
+												<th>氏名</th>
+												<th>フリガナ</th>
+												<th>所属</th>
+												<th>参考記録</th>
+												<th>Status</th>
+										</tr>
+								</thead>
+								<tbody>
+										{% for form in formset %}
+										{% if  form.group.value == -123 %}
+										{{ form.id }}
+										{{ form.bib }}
+										{{ form.name }}
+										{{ form.kana }}
+										{{ form.grade }}
+										{{ form.club }}
+										{{ form.pb }}
+										{{ form.status }}
+										<tr>
+												<td>{{ form.group }}</td>
+												<td>{{ form.order_lane }}</td>
+												<td>{{ form.bib.value }}</td>
+												<td>{{ form.name.value }} ({{ form.grade.value}})</td>
+												<td><small>{{ form.kana.value }}</small></td>
+												<td>{{ form.club.value }}</td>
+												<td>{% format_mark form.pb.value  event_status.event %}</td>
+												<td>{{ form.status.value }}</td>
+										</tr>
+										{% endif %}
+										{% endfor %}
+								</tbody>
+						</table>
+				</div>
+				<!-- 番組編成　未完了 -->
+				<div class="card-block">
+						<h5>番組編成　未完了</h5>
+						<table class="table table-striped table-sm">
+								<thead>
+										<tr>
+												<th style="width: 5em;">組</th>
+												<th style="width: 5em;">レーン/試技順</th>
+												<th>No.</th>
+												<th>氏名</th>
+												<th>フリガナ</th>
+												<th>所属</th>
+												<th>参考記録</th>
+												<th>Status</th>
+										</tr>
+								</thead>
+								<tbody>
+										{% for form in formset %}
+										{% if  not form.group.value > 0  or not form.group.value == -123%}
+										{{ form.id }}
+										{{ form.bib }}
+										{{ form.name }}
+										{{ form.kana }}
+										{{ form.grade }}
+										{{ form.club }}
+										{{ form.pb }}
+										{{ form.status }}
+										<tr>
+												<td>{{ form.group }}</td>
+												<td>{{ form.order_lane }}</td>
+												<td>{{ form.bib.value }}</td>
+												<td>{{ form.name.value }} ({{ form.grade.value}})</td>
+												<td><small>{{ form.kana.value }}</small></td>
+												<td>{{ form.club.value }}</td>
+												<td>{% format_mark form.pb.value  event_status.event %}</td>
+												<td>{{ form.status.value }}</td>
+										</tr>
+										{% endif %}
+										{% endfor %}
+								</tbody>
+						</table>
+				</div>
+				<div class="card-footer text-muted">
+						<button type="submit" class="btn btn-primary">確定</button>
+						<a href="{% url 'organizer:sl_top' event_status_id=event_status.id %}" class="btn btn-secondary">戻る</a>
+				</div>
+		</div>
+</form>

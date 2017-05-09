@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
+{% block title %}SL_Update|運営|CardinalSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">
+				<h3 class="page-header">運営者ページ</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info:</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!:</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				<form action="{% url 'organizer:organizer_SL_update' event_status_id=event_status.id %}"  method="POST" role="form">
+						{% csrf_token %}
+						<div class="card">
+								<div class="card-header">
+										<h3 class="card-title">スタートリストを確定させる</h3>
+										<h5 class="card-subtitle">{{ event_status.section|race_section_to_ja }} {{ event_status.event.sex|sex_to_ja}} {{ event_status.event.name }}</h5>
+								</div>
+								<div class="card-block">
+										<div class="form-group row">
+												<label for="example-text-input" class="col-3 col-form-label">大会名</label>
+												<div class="col-5">{{ comp.name }}</div>
+										</div>
+										<div class="form-group row">
+												<label for="example-text-input" class="col-3 col-form-label">種目</label>
+												<div class="col-5">{{ event_status.section|race_section_to_ja }} {{ event_status.event.sex|sex_to_ja}} {{ event_status.event.name }}</div>
+										</div>
+										<div class="form-group row">
+												<label for="example-text-input" class="col-3 col-form-label">状態</label>
+												<div class="col-5">{{ form.status }}</div>
+										</div>
+										<div class="form-group row">
+												<label for="example-text-input" class="col-3 col-form-label">スタートリスト[1]</label>
+												<div class="col-5">{{ form.start_list }}</div>
+												<div class="col-4"><small>プログラム用のSLが確定したらチェック</small></div>
+										</div>
+										<div class="form-group row">
+												<label for="example-text-input" class="col-3 col-form-label">スタートリスト[Final]</label>
+												<div class="col-5">{{ form.start_list_2 }}</div>
+												<div class="col-4"><small>SLが最終確定したらチェック</small></div>
+										</div>
+								</div>
+								<div class="card-footer text-muted">
+										<button type="submit" class="btn btn-primary">更新</button>
+										<a href="{% url 'organizer:organizer_SL_web' event_status_id=event_status.id %}" class="btn">戻る</a>
+								</div>
+						</div>
+				</form>
+		</div>
+</div>
+{% endblock content %}

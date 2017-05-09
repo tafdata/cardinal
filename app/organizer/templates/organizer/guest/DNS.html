@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
+{% block title %}棄権|CardinalSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">
+				<h3 class="mb-3">棄権フォーム</h3>
+				<form action="{% url 'organizer:guest_DNS' entry_id=entry.id %}"  method="POST" role="form">
+						{% csrf_token %}
+						{{ form.entry_status }}
+						<div class="card">
+								<div class="card-header">
+										<h3 class="card-title">棄権する種目の確認</h3>
+										<h5 class="card-subtitle">正しければ画面下のボタンを押してください</h5>
+								</div>
+								<div class="card-block">
+										<table class="table table-striped table-sm">
+												<thead>
+														<tr>
+																<th>項目</th>
+																<th></th>
+														</tr>
+												</thead>
+												<tbody>
+														<tr>
+																<td>部門</td>
+																<td>
+																		{{ event_status.section|race_section_to_ja }}
+																</td>
+														</tr>
+														<tr>
+																<td>種目</td>
+																<td>
+																		{{ event_status.event.sex|sex_to_ja}}
+																		{{ event_status.event.name }}
+																</td>
+														</tr>
+														<tr>
+																<td>ゼッケン</td>
+																<td>{{ entry.bib }}</td>
+														</tr>
+														<tr>
+																<td>氏名</td>
+																<td class="row">
+																		<div class="col-6">{{ entry.name_family }} {{ entry.name_first }}</div>
+																		<div class="col-6">{{ entry.kana_family }} {{ entry.kana_first }}</div>
+																</td>
+														</tr>
+														<tr>
+																<td>所属</td>
+																<td>{{ entry.club }}</td>
+														</tr>
+														<tr>
+																<td>登録陸協</td>
+																<td>{{ entry.jaaf_branch }}</td>
+														</tr>
+														<tr>
+																<td>参考記録</td>
+																<td>{% format_mark entry.personal_best event_status.event %}</td>
+														</tr>
+												</tbody>
+										</table>
+								</div>
+								<div class="card-footer text-muted">
+										<button type="submit" class="btn btn-primary">棄権する</button>
+										<a href="{% url 'organizer:guest_top' %}" class="btn">戻る</a>
+								</div>
+						</div>
+				</form>
+		</div>
+</div>
+{% endblock content %}

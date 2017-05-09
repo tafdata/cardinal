@@ -53,23 +53,31 @@ Entry Add [個別]
 class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
-        fields = ['event_status', 'bib', 'name_family', 'name_first', 'kana_family', 'kana_first', 'sex', 'grade', 'club', 'jaaf_branch', 'personal_best' ]
+        fields = ['event_status', 'bib', 'name_family', 'name_first', 'kana_family', 'kana_first', 'sex', 'grade', 'club', 'jaaf_branch', 'personal_best']
 
     def __init__(self, *args, **kwargs):
+        try:
+            event_status = kwargs.pop('event_status')
+        except KeyError:
+            event_status = False
         super(EntryForm, self).__init__(*args, **kwargs)
         self.fields["event_status"].widget.attrs.update({'class': 'form-control form-control-sm'})
+        if event_status:
+            self.fields["event_status"].widget = forms.HiddenInput()
+            self.fields["event_status"].initial = event_status.id
+
         self.fields["bib"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["name_family"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'姓'})
         self.fields["name_first"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'名'})
         self.fields["kana_family"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'セイ'})
         self.fields["kana_first"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'メイ'})
         self.fields["sex"].widget.attrs.update({'class': 'form-control form-control-sm'})
-        self.fields["grade"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'ex. B4'})
+        self.fields["grade"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["club"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["jaaf_branch"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["personal_best"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'ex. 001234'})
-                
 
+        
 """
 Entry Add [一括]
 """
@@ -90,7 +98,8 @@ class EntryUploadFileForm(forms.Form):
     
 
 
-    
+
+        
 
 """
 SL Edit Order/Lane
@@ -102,12 +111,11 @@ class SLEditForm(forms.ModelForm):
     grade = forms.CharField(widget=forms.HiddenInput())
     club = forms.CharField(widget=forms.HiddenInput())
     pb = forms.CharField(widget=forms.HiddenInput())
-    status = forms.CharField(widget=forms.HiddenInput())
 
     
     class Meta:
         model = Entry
-        fields = ['id', 'group', 'order_lane']
+        fields = ['id', 'group', 'order_lane', 'entry_status']
         widgets = {
             'group': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder':'組'}),
             'order_lane': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
@@ -123,8 +131,63 @@ class SLEditForm(forms.ModelForm):
         self.fields["grade"].initial = entry.grade
         self.fields["club"].initial =  entry.club
         self.fields["pb"].initial =  entry.personal_best
-        self.fields["status"].initial =  entry.entry_status
 
         self.fields["group"].widget.attrs.update()
         self.fields["order_lane"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
+        self.fields["entry_status"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
 
+
+
+
+"""
+Entry Edit Entry Status
+"""
+class EntryStatusEditForm(forms.ModelForm):
+    class Meta:
+        model = Entry
+        fields = ['id','entry_status']
+
+        
+    def __init__(self, *args, **kwargs):
+        try:
+            mode = kwargs.pop('mode')
+        except KeyError:
+            mode = False
+        super(EntryStatusEditForm, self).__init__(*args, **kwargs)
+        if mode == 'simple':
+            self.fields["entry_status"].widget = forms.HiddenInput()
+
+
+
+"""
+Entry Edit Entry Status
+"""
+class SLUpdateForm(forms.ModelForm):
+    # comp = forms.CharField(widget=forms.HiddenInput())
+    # event = forms.CharField(widget=forms.HiddenInput())
+    # sex = forms.CharField(widget=forms.HiddenInput())
+    # match_round = forms.CharField(widget=forms.HiddenInput())
+
+    class Meta:
+        model = EventStatus
+        fields = ['status', 'start_list', 'start_list_2']
+        
+    def __init__(self, *args, **kwargs):
+        # event_status = kwargs.["instance"]
+        super(SLUpdateForm, self).__init__(*args, **kwargs)
+        self.fields["status"].widget.attrs.update({'class': 'form-control form-control-sm'})
+        self.fields["start_list"].widget.attrs.update({'class': 'form-control form-control-sm'})
+        self.fields["start_list_2"].widget.attrs.update({'class': 'form-control form-control-sm'})
+
+
+"""
+DNS Form
+"""
+class DNSForm(forms.ModelForm):
+    class Meta:
+        model = Entry
+        fields = ['entry_status']
+        widgets = {
+            'id' : forms.HiddenInput(),
+            'entry_status' : forms.HiddenInput(),
+        }

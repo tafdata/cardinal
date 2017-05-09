@@ -1,0 +1,66 @@
+{% load organizer_filters %}
+
+<!-- Main -->
+<form action="{{ submit_url }}" method="POST" role="form">
+		{% csrf_token %}
+		<div class="card">
+				<div class="card-header">
+						{% if event_status %}
+						<h3 cladd="card-title">エントリー　個別登録</h3>
+						<h6 class="card-title text-muted">{{ event_status.section|race_section_to_ja }}  {{ event_status.event.sex|sex_to_ja }}  {{ event_status.event.name }}</h6>
+						{% else %}
+						<h4 cladd="card-title">エントリー　個別登録</h6>
+						{% endif %}					
+				</div>
+				<div class="card-block">
+						{% if event_status %}
+						{{ form.event_status }}
+						{% else %}
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">種目</label>
+								<div class="col-5">{{ form.event_status }}</div>
+								<div class="col-5"><small>注1) VS=対校, 注2) 性別に注意[M=男子, W=女子]</small></div>
+						</div>										
+						{% endif %}
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">登録番号</label>
+								<div class="col-5">{{ form.bib }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">氏名</label>
+								<div class="col-5">{{ form.name_family }}</div>
+								<div class="col-5">{{ form.name_first }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">フリガナ(全角カナ)</label>
+								<div class="col-5">{{ form.kana_family }}</div>
+								<div class="col-5">{{ form.kana_first }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">性別</label>
+								<div class="col-5">{{ form.sex }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">学年</label>
+								<div class="col-5">{{ form.grade }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">所属</label>
+								<div class="col-5">{{ form.club }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">登録陸協</label>
+								<div class="col-5">{{ form.jaaf_branch }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">参考記録</label>
+								<div class="col-5">{{ form.personal_best }}</div>
+								<div class="col-5"><small>数字6桁で入力てください。<br>(ex. 12"34==>001234, 7m55==>000755)</small></div>
+						</div>
+				</div>
+				<div class="card-footer">
+						<button type="submit" class="btn btn-primary">登録</button>
+						<a href="{% url 'organizer:organizer_top' %}" class="btn btn-secodary">戻る</a>
+				</div>
+		</div>
+</form>

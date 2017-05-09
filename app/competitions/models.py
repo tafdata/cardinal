@@ -5,7 +5,6 @@ from django.db import models
 Choice Options
 """
 COMP_STATUS_CHOICES = (
-    ('Lock', 'Lock'),
     ('Entry', 'Entry'),
     ('StandBy', 'Stand By'),
     ('OnGoing', 'On Going'),
@@ -15,8 +14,6 @@ COMP_STATUS_CHOICES = (
 SEX_CHOICES = (
     ('M', '男'),
     ('W', '女'),
-    ('F', '家族'),
-    ('X', 'その他'),
     ('U', 'Unknown'),
 )
 
@@ -28,7 +25,6 @@ ORDER_CHOICES = (
 SECTION_CHOICES = (
     ('VS', '対校'),
     ('OP', 'OP'),
-    ('Sub', '補欠'),
     ('TT', '記録会'),
     ('XX', 'その他'),
 )
@@ -63,7 +59,6 @@ class Comp(models.Model):
     place = models.CharField(max_length=256)
     place_code = models.CharField(max_length=16)
     date = models.DateField()
-    date_end = models.DateField(blank=True)
     sponsor = models.CharField(max_length=512, blank=True)
     organizer = models.CharField(max_length=512, blank=True)
     status = models.CharField(
@@ -85,7 +80,7 @@ Event: 競技種目
 class Event(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=256)
-    short = models.CharField(max_length=256)
+    short = models.CharField(max_length=256, blank=True)
     sex = models.CharField(
         max_length=1,
         choices=SEX_CHOICES,
@@ -105,7 +100,6 @@ class Event(models.Model):
     separator_1 = models.CharField(max_length=4, blank=True)
     separator_2 = models.CharField(max_length=4, blank=True)
     separator_3 = models.CharField(max_length=4, blank=True)
-    start_list_priority = models.IntegerField(default=100000)      # プログラム記載順
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -134,7 +128,7 @@ class EventStatus(models.Model):
     section = models.CharField(
         max_length=4,
         choices=SECTION_CHOICES,
-        default='OP',
+        default='OP',        
     ) # 対校/OP
     match_round = models.CharField(
         "Round",
@@ -142,7 +136,9 @@ class EventStatus(models.Model):
         choices=ROUND_CHOICES,
         default='Final',
     )
+    start_list_priority = models.IntegerField(default=100000)      # プログラム記載順
     start_list = models.BooleanField(default=False)  # スタートリストを出力
+    start_list_2 = models.BooleanField(default=False)  # スタートリスト(最終版)を出力
     
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

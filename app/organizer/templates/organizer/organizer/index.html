@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load organizer_filters %}
+{% load organizer_tags %}
+
+{% block title %}Home|運営|CardinlSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">
+				<h3 class="page-header">運営者ページ</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				<!-- Main -->
+				<div class="row">
+						<div class="col-sm-6">
+								<div class="card mb-3">
+										<div class="card-block">
+												<h4 class="card-title">大会&種目登録</h4>
+										</div>
+										<ul class="list-group list-group-flush">
+												<li class="list-group-item">
+														<span class="mr-3 card-text">大会</span>
+														<a href="http://localhost:7000/admin/competitions/comp/" class="card-link" target="_blank">編集</a>														
+														<a href="http://localhost:7000/admin/competitions/comp/add" class="card-link" target="_blank">追加</a>
+												</li>
+												<li class="list-group-item">
+														<span class="mr-3 card-text">種目</span>
+														<a href="http://localhost:7000/admin/competitions/event/" class="card-link" target="_blank">編集</a>
+														<a href="http://localhost:7000/admin/competitions/event/add" class="card-link" target="_blank">追加</a>
+
+												</li>
+												<li class="list-group-item">
+														<span class="mr-3 card-text">実施種目</span>
+														<!-- <a href="" class="card-link">追加(CSV経由)</a> -->
+												</li>
+										</ul>
+								</div>
+						</div>
+						<div class="col-sm-6">
+								<div class="card mb-3">
+										<div class="card-block">
+												<h4 class="card-title">エントリー</h4>
+												{# <a href="{% url 'organizer:sl_web' event_status_id=event_status.id %}" class="card-link">個別登録</a> #}
+												<div class="row">
+														<div class="col-md-4">
+																<span class="mr-3 card-text">個別登録</span>
+														</div>
+														<div class="col-md-8">
+																<a href="{% url 'organizer:organizer_entry_add' entry_method='entry' %}" class="card-link">通常エントリー</a>
+																<a href="{% url 'organizer:organizer_entry_add' entry_method='entry2' %}" class="card-link">当日エントリー</a>
+														</div>
+												</div>
+												<div class="row">
+														<div class="col-md-4">
+																<span class="mr-3 card-text">一括登録</span>
+														</div>
+														<div class="col-md-8">
+																<a href="{% url 'organizer:organizer_entry_add_by_file' %}" class="card-link">一括エントリー</a>
+														</div>
+												</div>
+										</div>
+								</div>
+								<div class="card mb-3">
+										<div class="card-block">
+												<h4 class="card-title">上陸連携</h4>
+												{# <a href="{% url 'organizer:sl_web' event_status_id=event_status.id %}" class="card-link">個別登録</a> #}
+												<div class="row">
+														<div class="col-md-4">
+																<span class="mr-3 card-text">上陸</span>
+														</div>
+														<div class="col-md-8">
+																<a href="" class="card-link">CSV出力</a>
+														</div>
+												</div>
+										</div>
+								</div>
+						</div>
+				</div>
+				<div class="row">
+						<div class="col-12">
+								<!-- 実施種目の一覧 -->
+								<div class="card my-3">
+										<div class="card-block">
+												<!-- Nav tabs -->
+												<ul class="nav nav-tabs" role="tablist">
+														<li class="nav-item">
+																<a class="nav-link active" data-toggle="tab" href="#event_status" role="tab">実施種目<small>EventStatus</small></a>
+														</li>
+														<li class="nav-item">
+																<a class="nav-link" data-toggle="tab" href="#event" role="tab">種目<small>Event</small></a>
+														</li>
+												</ul>
+												<!-- Tab panes -->
+												<div class="tab-content py-3">
+														<div class="tab-pane active" id="event_status" role="tabpanel"">
+																<h4 class="card-title">実施種目<small class="text-muted">{{ comp.name }}</small></h4>
+																<h6 class="card-subtitle mb-2 text-muted"></h6>
+																{% table_event_status comp user %}
+														</div>
+														<div class="tab-pane" id="event" role="tabpanel"">
+																<h4 class="card-title">種目<small class="text-muted">{{ comp.name }}</small></h4>
+																<h6 class="card-subtitle mb-2 text-muted"></h6>
+																{% table_event comp %}
+																<div>
+																		<h5>プログラム</h5>
+																		<a href="" class="card-link">男子トラック</a>
+																		<a href="" class="card-link">男子フィールド</a>
+																		<a href="" class="card-link">女子トラック</a>
+																		<a href="" class="card-link">女子フィールド</a>
+																</div>
+														</div>
+												</div>
+										</div>
+										<div class="card-footer text-muted">												
+										</div>
+								</div>
+								<a href="{% url 'organizer:organizer_top'  %}" class="btn btn-secondary">戻る</a>
+						</div>
+				</div>
+		</div>
+</div>
+
+
+
+
+
+{% endblock content %}

@@ -1,0 +1,183 @@
+{% load organizer_filters %}
+{% load organizer_tags %}
+{% load in_group %}
+
+<!-- 番組編成済みの組 -->
+{% for group in groups_done %}
+<div class="row mb-5">
+		<div class="col-12">
+		<h3>{{ group.group }}組</h3>
+		<table class="table table-striped table-sm">
+				<thead>
+						<tr>
+								<th style="width:5em;">レーン</th>
+								<th style="width:5em;">No.</th>
+								<th style="width:10em;">氏名</th>
+								<th style="width:10em;"></th>
+								<th style="width:10em;">所属</th>
+								<th>参考記録</th>
+								<th>Status</th>
+								<th>Options</th>
+						</tr>
+				</thead>
+				<tbody>
+						{% for entry in group.entries %}
+						<tr>
+								<td>{% if entry.order_lane %}{{ entry.order_lane }}{% else %}--{% endif %}</td>
+								<td>{{ entry.bib }}</td>
+								<td style="white-space:nowrap;">
+										{{ entry.name_family }} {{ entry.name_first }} ({{ entry.grade }})
+								</td>
+								<td style="white-space:nowrap;">
+										{{ entry.kana_family|zen_to_han }} {{ entry.kana_first|zen_to_han }}
+								</td>
+								<td>{{ entry.club }}</td>
+								<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
+								<td>
+										{% if entry.entry_status == 'Entry' %}
+										Entry
+										{% elif entry.entry_status == 'Entry_2' %}
+										<span class="badge badge-info">当日エントリー</span>
+										{% else %}
+										<span class="badge badge-danger">{{ entry.entry_status }}</span>
+										{% endif %}
+								</td>
+								<td>
+										{% if user|in_group:"organizer" %}
+										<!-- 運営者用のリンク -->
+										{% elif user|in_group:"reception" %}
+										<!-- 競技者係用のリンク -->
+										{% elif user|in_group:"guest" %}
+										<!-- ゲストユーザ用のリンク -->
+										{% if not entry.entry_status == 'DNS' %}
+										<a href="{% url 'organizer:guest_DNS' entry.id %}" class="btn btn-danger btn-sm">棄権する</a>
+										{% endif %}
+										{% endif %}
+								</td>
+						</tr>
+						{% endfor %}
+				</tbody>
+		</table>
+		</div>
+</div>
+{% endfor %}
+
+<!-- 補欠 -->
+{% for group in groups_sub %}
+<div class="row mb-5">
+		<div class="col-12">
+		<h3>補欠</h3>
+		<table class="table table-striped table-sm">
+				<thead>
+						<tr>
+								<th style="width:5em;">レーン</th>
+								<th style="width:5em;">No.</th>
+								<th style="width:10em;">氏名</th>
+								<th style="width:10em;"></th>
+								<th style="width:10em;">所属</th>
+								<th>参考記録</th>
+								<th>Status</th>
+								<th>Options</th>
+						</tr>
+				</thead>
+				<tbody>
+						{% for entry in group.entries %}
+						<tr>
+								<td>{% if entry.order_lane == -1 %}-{% else %}{{ entry.order_lane }}{% endif %}</td>
+								<td>{{ entry.bib }}</td>
+								<td style="white-space:nowrap;">
+										{{ entry.name_family }} {{ entry.name_first }} ({{ entry.grade }})
+								</td>
+								<td style="white-space:nowrap;">
+										{{ entry.kana_family|zen_to_han }} {{ entry.kana_first|zen_to_han }}
+								</td>
+								<td>{{ entry.club }}</td>
+								<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
+								<td>
+										{% if entry.entry_status == 'Entry' %}
+										Entry
+										{% elif entry.entry_status == 'Entry_2' %}
+										<span class="badge badge-info">当日エントリー</span>
+										{% else %}
+										<span class="badge badge-danger">{{ entry.entry_status }}</span>
+										{% endif %}
+								</td>
+								<td>
+										{% if user|in_group:"organizer" %}
+										<!-- 運営者用のリンク -->
+										{% elif user|in_group:"reception" %}
+										<!-- 競技者係用のリンク -->
+										{% elif user|in_group:"guest" %}
+										<!-- ゲストユーザ用のリンク -->
+										{% if not entry.entry_status == 'DNS' %}
+										<a href="{% url 'organizer:guest_DNS' entry.id %}" class="btn btn-danger btn-sm">棄権する</a>
+										{% endif %}
+										{% endif %}
+								</td>
+						</tr>
+						{% endfor %}
+				</tbody>
+		</table>
+		</div>
+</div>
+{% endfor %}
+
+<!-- 番組編成未処理の組 -->
+{% for group in groups_null %}
+<div class="row mb-5">
+		<div class="col-12">
+		<h3>番組編成 未処理</h3>
+		<table class="table table-striped table-sm">
+				<thead>
+						<tr>
+								<th style="width:5em;">レーン</th>
+								<th style="width:5em;">No.</th>
+								<th style="width:10em;">氏名</th>
+								<th style="width:10em;"></th>
+								<th style="width:10em;">所属</th>
+								<th>参考記録</th>
+								<th>Status</th>
+								<th>Options</th>
+						</tr>
+				</thead>
+				<tbody>
+						{% for entry in group.entries %}
+						<tr>
+								<td>-</td>
+								<td>{{ entry.bib }}</td>
+								<td style="white-space:nowrap;">
+										{{ entry.name_family }} {{ entry.name_first }} ({{ entry.grade }})
+								</td>
+								<td style="white-space:nowrap;">
+										{{ entry.kana_family|zen_to_han }} {{ entry.kana_first|zen_to_han }}
+								</td>
+								<td>{{ entry.club }}</td>
+								<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
+								<td>
+										{% if entry.entry_status == 'Entry' %}
+										Entry
+										{% elif entry.entry_status == 'Entry_2' %}
+										<span class="badge badge-info">当日エントリー</span>
+										{% else %}
+										<span class="badge badge-danger">{{ entry.entry_status }}</span>
+										{% endif %}
+								</td>
+								<td>
+										{% if user|in_group:"organizer" %}
+										<!-- 運営者用のリンク -->
+										{% elif user|in_group:"reception" %}
+										<!-- 競技者係用のリンク -->
+										{% elif user|in_group:"guest" %}
+										<!-- ゲストユーザ用のリンク -->
+										{% if not entry.entry_status == 'DNS' %}
+										<a href="{% url 'organizer:guest_DNS' entry.id %}" class="btn btn-danger btn-sm">棄権する</a>
+										{% endif %}
+										{% endif %}
+								</td>
+						</tr>
+						{% endfor %}
+				</tbody>
+		</table>
+		</div>
+</div>
+{% endfor %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}エントリー一括|運営|CardinalSystem{% endblock title %}
+
+{% block content %}
+<div class="row">
+		<div class="col-lg-10 offset-lg-1">				
+				<h3 class="page-header">大会運営ツール</h3>
+				<!-- Alert -->
+				{% if comp %}
+				<div class="alert alert-info" role="alert">
+						<strong>Info:</strong> 運営中の競技会として「{{ comp.name }}」が選択されています。
+				</div>
+				{% else %}
+				<div class="alert alert-warning" role="alert">
+						<strong>Warning!:</strong> 運営する競技会が選択されていません。競技会を選択してください。
+				</div>
+				{% endif %}
+				{% if msg %}
+				<div class="alert alert-danger" role="alert">
+						<strong>Error:</strong> {{ msg }}
+				</div>
+				{% endif %}
+				<!-- Main -->
+				<form action="{% url 'organizer:organizer_entry_add_by_file' %}" enctype="multipart/form-data" method="POST" role="form">
+						{% csrf_token %}
+						<div class="card">
+								<div class="card-header">
+										<h4 class="card-title">エントリー</h4>
+										<h6 class="card-subtitle text-muted">一括登録(CSV経由)</h6>
+								</div>
+								<div class="card-block">
+										<div class="form-group row">
+												<label class="col-4 col-form-label">エントリーファイル CSV</label>
+												<div class="col-8">{{ form.file }}</div>
+										</div>
+										<div class="form-group row">
+												<label class="col-4 col-form-label">エントリー種別</label>
+												<div class="col-8">{{ form.entry_status }}</div>
+										</div>							
+								</div>
+								<div class="card-footer">
+										<button type="submit" class="btn btn-primary">Upload</button>
+										<a href="{% url 'organizer:organizer_top' %}" class="btn">戻る</a>
+								</div>
+						</div>
+				</form>
+		</div>
+</div>
+{% endblock content %}
