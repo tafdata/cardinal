@@ -39,7 +39,7 @@
 										<div class="card-footer">										
 												<a href="{% url 'organizer:organizer_SL_edit' event_status_id=event_status.id %}" class="card-link">番組編成</a>
 												<a href="{% url 'organizer:organizer_SL_update' event_status_id=event_status.id %}" class="card-link">SLを確定させる</a>
-												<a href="{% url 'organizer:sl_excel' sl_type='event_status'  pk=event_status.id %}" class="card-link">Excel版をダウンロード</a>
+												<a href="{% url 'organizer:organizer_SL_excel' sl_type='event_status'  pk=event_status.id %}" class="card-link">Excel版をダウンロード</a>
 												<a href="{% url 'organizer:organizer_top' %}" class="card-link">種目選択へ戻る</a>
 										</div>										
 								</div>								

@@ -9,11 +9,13 @@ from openpyxl.styles import Border, Side
 
 
 from django.db.models.aggregates import Count
+from django.core.exceptions import ObjectDoesNotExist
+
 # Models
 from competitions.models import Comp, Event, EventStatus, GR as GRecord
 from organizer.models import Entry
 from organizer.templatetags.organizer_tags import format_mark
-from organizer.templatetags.organizer_filters import zen_to_han
+from organizer.templatetags.organizer_filters import zen_to_han, sex_to_ja
 
 
 """
@@ -225,7 +227,7 @@ class ProgramMaker:
             print(i)
             ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i+2)
             self.write_cell(ws.cell(row=row, column=i), "m")
-        ws.cell(row=row, column=i).alignment =Alignment(vertical='bottom', horizontal='center')
+            ws.cell(row=row, column=i).alignment =Alignment(vertical='bottom', horizontal='center')
         # 記録
         ws.merge_cells(self.cell_posi(row, "AG")+":"+self.cell_posi(row+1,"AG"))
         self.write_cell(ws.cell(row=row, column=33), u"記録")
@@ -425,7 +427,7 @@ class ProgramMaker:
         for i in np.arange(0, len(entries), 1):
             try:
                 entry = entries.get(order_lane=i+1)
-            except Entry.DoesNotExist:
+            except ObjectDoesNotExist:
                 entry = self.entry_Null
             row = self.write_row_HJPV(ws, row, entry, i+1)
             c += 1
@@ -441,7 +443,7 @@ class ProgramMaker:
                 entry = entries.get(order_lane=1)
                 if entry.event_status.section == 'VS': trial = 6
                 else: trial = 3
-            except Entry.DoseNotExist:
+            except ObjectDoesNotExist:
                 pass
         # Header
         row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
@@ -450,7 +452,7 @@ class ProgramMaker:
         for i in np.arange(0, len(entries), 1):
             try:
                 entry = entries.get(order_lane=i+1)
-            except Entry.DoesNotExist:
+            except ObjectDoesNotExist:
                 entry = self.entry_Null            
             row = self.write_row_LJTJ(ws, row, entry, i+1, trial=trial)
             c += 1
@@ -566,7 +568,7 @@ class ProgramMaker:
         if event.program_type == 'Track8' or event.program_type == 'TrackN':
             return self.style_Track(ws, row)
         elif event.program_type == 'HJPV':
-            return self.style_LJThrow(ws, row)
+            return self.style_HJPV(ws, row)
         elif event.program_type == 'LJTJ' or event.program_type == 'Throw':
             return self.style_LJTJThrow(ws, row)
 
@@ -717,6 +719,41 @@ class ProgramMaker:
         return True
 
 
+
+    def cardinal_create_sheet_by_events(self, wb, comp, events, sheet_name=None):
+        # 複数種目書き出し
+        # Create Sheet
+        ws = wb.create_sheet()
+        row = 1
+        if sheet_name: ws.title = sheet_name
+        # Event Objectがない場合
+        if len(events) == 0:
+            return row;
+        else:
+            # Event Objectが同じProgram Typeを持つかチェック
+            program_type = None
+            for event in events:
+                if program_type:
+                    if program_type == event.program_type:
+                        continue
+                    else:
+                        print("Diffelent Program type: ", program_type, event.program_type)
+                        return row
+                else:
+                    program_type = event.program_type                    
+                    
+        # 書き出し
+        for event in events:
+            row = self.cardinal_write_by_event(ws, row, comp, event) 
+        # シートのスタイリング
+        row = self.style_sheet(ws, row, event)
+
+        # シートの書き出し完了
+        print("Success: write Excel Sheet of ", sheet_name)
+        return True
+    
+
+    
     def cardinal_create_sheet_by_event_status(self, wb, event_status, sheet_name=None):
         # Create Sheet
         ws = wb.create_sheet()
@@ -765,4 +802,68 @@ class ProgramMaker:
         ws = wb.get_sheet_by_name('None')
         wb.remove_sheet(ws)
         # 完了
-        return wb        
+        return wb 
+    
+
+    def cardinal_create_workbook_field(self, comp, sex=None):
+        # Params
+        # - comp: Comp obkject
+        # - sex: 性別
+        
+        # Create new Workbook
+        wb = px.Workbook()
+        ws = wb.active
+        ws.title = 'None'
+
+        #書き出し
+        try:
+            ## プログラムタイプでEventを取得
+            events = Event.objects.filter(
+                program_type__in=["HJPV","LJTJ","Throw"]
+            ).order_by("sex", "start_list_priority")
+            if sex:
+                events = events.filter(sex=sex)
+            ## シートの作成
+            for event in events:
+                sheet_name = event.sex+event.name
+                self.cardinal_create_sheet_by_event(wb, comp, event, sheet_name=sheet_name)
+
+        except Entry.DoesNotExist as e:
+            print(e, "@cardinal_create_workbook_field")
+            
+        ws = wb.get_sheet_by_name('None')
+        wb.remove_sheet(ws)
+        # 完了
+        return wb
+
+
+    def cardinal_create_workbook_track(self, comp, sex=None):
+        # Params
+        # - comp: Comp obkject
+        # - sex: 性別
+        
+        # Create new Workbook
+        wb = px.Workbook()
+        ws = wb.active
+        ws.title = 'None'
+
+        #書き出し
+        try:
+            ## プログラムタイプでEventを取得
+            events = Event.objects.filter(
+                program_type__in=["Track8","TrackN"]
+            ).order_by("sex", "start_list_priority")
+            if sex:
+                events = events.filter(sex=sex)
+            ## シートの作成
+            for event in events:
+                sheet_name = event.sex+event.name
+                self.cardinal_create_sheet_by_event(wb, comp, event, sheet_name=sheet_name)
+
+        except Entry.DoesNotExist as e:
+            print(e, "@cardinal_create_workbook_field")
+            
+        ws = wb.get_sheet_by_name('None')
+        wb.remove_sheet(ws)
+        # 完了
+        return wb

@@ -21,6 +21,7 @@ from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditFo
 from organizer.upload import EntryHandler
 from organizer.myprogram import ProgramMaker
 
+
 # ================================ #
 #   Functions
 # ================================ #
@@ -64,27 +65,44 @@ def check_entry(entry):
 
 @login_required
 @user_passes_test(lambda user: user.groups.filter(name='reception').exists())
-def entry_add(request, entry_method, event_status_id=None):
+def entry_add(request, entry_method, id=None):
     # Params
-    # - entry_method: 通常=entry, 当日=entry2
+    # - entry_method: 通常=entry, 当日=entry2, edit=修正
     comp = get_comp(request)
     msg = False
-    
+
+    # POST
     if request.method == 'POST':
-        form = EntryForm(request.POST)
+        if entry_method == 'edit':
+            entry = get_object_or_404(Entry, pk=id)
+            form = EntryForm(request.POST, instance=entry)
+        else:
+            form = EntryForm(request.POST)
         if form.is_valid():
             new_entry = form.save(commit=False)
             flg, msg = check_entry(new_entry)
             if flg:
                 if entry_method == 'entry': new_entry.entry_status = 'Entry'
-                else: new_entry.entry_status = 'Entry_2'
+                elif entry_method == 'entry2': new_entry.entry_status = 'Entry_2'
                 new_entry.save()
-                return redirect('organizer:organizer_top')
+                if entry_method == 'edit':
+                    return redirect('organizer:organizer_SL_web', event_status_id=entry.event_status.id)
+                else:
+                    return redirect('organizer:organizer_top')
+            
+    # 修正
+    if entry_method == 'edit':
+        entry = get_object_or_404(Entry, pk=id)
+        submit_url = reverse("organizer:organizer_entry_add", kwargs={'entry_method': entry_method, 'id': id})
+        return render(request,
+                      'organizer/organizer/entry_add.html',
+                      {'comp': comp,'entry':entry, 'msg': msg, 'submit_url': submit_url})
+
+    # 追加
+    if id:
+        event_status = get_object_or_404(EventStatus, pk=id)
     else:
-        if event_status_id:
-            event_status = get_object_or_404(EventStatus, pk=event_status_id)
-        else:
-            event_status = None
+        event_status = None
         submit_url = reverse("organizer:organizer_entry_add", kwargs={'entry_method': entry_method})
     return render(request,
                   'organizer/organizer/entry_add.html',
@@ -118,6 +136,7 @@ def entry_add_by_file(request):
     return render(request,
                   'organizer/organizer/entry_add_by_file.html',
                   {'form': form, 'comp': comp}) 
+
 
 
 
@@ -184,3 +203,35 @@ def SL_update(request, event_status_id):
                   {'form': form, 'comp': comp, 'event_status': event_status})    
 
     
+
+
+"""
+SL スタートリスト Excelダウンロード
+"""
+def SL_excel(request, sl_type=None, pk=None):
+    comp = get_comp(request)
+    PM = ProgramMaker(comp)
+    
+    # ダウンロード
+    # Excel 作成
+    if sl_type == "event":
+        event = get_object_or_404(Event, pk=pk)
+        wb = PM.cardinal_create_workbook_by_event(comp, event)
+        filename = event.sex+event.name+".xlsx"
+    elif sl_type == "event_status":
+        event_status = get_object_or_404(EventStatus, pk=pk)
+        event = event_status.event
+        wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
+        filename = event_status.section+event.sex+event.name+".xlsx"
+    elif sl_type == "field":
+        wb = PM.cardinal_create_workbook_field(comp)
+        filename = "Field.xlsx"
+
+    # 保存
+    output = io.BytesIO()
+    wb.save(output)
+    # Response
+    response = HttpResponse(output.getvalue(), content_type="application/excel")
+    response["Content-Disposition"] = "filename="+filename
+    return response
+

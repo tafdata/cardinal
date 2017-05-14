@@ -88,14 +88,17 @@ def table_event(comp):
 Entry 個別登録
 """
 @register.inclusion_tag('organizer/components/entry_add_single.html')
-def entry_add_single(event_status=None, submit_url=None):
-    if event_status:
+def entry_add_single(event_status=None, entry=False, submit_url=None):
+    if entry:
+        event_status = entry.event_status
+        form = EntryForm(instance=entry, event_status=event_status)
+    elif event_status:
         form = EntryForm(event_status=event_status)
     else:
         event_status = None
         form = EntryForm()
 
-    return {'form': form, 'event_status':event_status, 'submit_url': submit_url}
+    return {'form': form, 'event_status':event_status, 'entry': entry, 'submit_url': submit_url}
 
 
         

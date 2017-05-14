@@ -24,7 +24,11 @@
 				{% endif %}
 
 				<!-- 個別エントリーフォーム -->
-				{% entry_add_single event_status submit_url %}
+				{% if entry %}
+				{% entry_add_single event_status=None entry=entry submit_url=submit_url %}
+				{% else %}
+				{% entry_add_single event_status=event_status submit_url=submit_url %}
+				{% endif %}
 		</div>	
 </div>
 {% endblock content %}

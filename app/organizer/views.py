@@ -141,6 +141,7 @@ def entry_add(request):
                   'organizer/entry_add.html',
                   {'form': form, 'comp': comp, 'msg': msg})
 
+
 def entry_add_by_file(request):
     comp = get_comp(request)
 
@@ -166,7 +167,7 @@ def entry_add_by_file(request):
 
     return render(request,
                   'organizer/entry_add_by_file.html',
-                  {'form': form, 'comp': comp})    
+                  {'form': form, 'comp': comp})  
         
 
 
@@ -253,27 +254,3 @@ def sl_web(request, event_status_id):
                   'organizer/SL_web.html',
                   {'comp': comp, 'event_status': event_status, 'groups':groups})
 
-
-"""
-SL スタートリスト Excelダウンロード
-"""
-def sl_excel(request, sl_type=None, pk=None):
-    comp = get_comp(request)
-    PM = ProgramMaker(comp)
-    
-    # ダウンロード
-    # Excel 作成
-    if sl_type == "event":
-        event = get_object_or_404(Event, pk=pk)
-        wb = PM.cardinal_create_workbook_by_event(comp, event)
-    elif sl_type == "event_status":
-        event_status = get_object_or_404(EventStatus, pk=pk)
-        event = event_status.event
-        wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
-    # 保存
-    output = io.BytesIO()
-    wb.save(output)
-    # Response
-    response = HttpResponse(output.getvalue(), content_type="application/excel")
-    response["Content-Disposition"] = "filename="+event.sex+event.name+".xlsx"
-    return response

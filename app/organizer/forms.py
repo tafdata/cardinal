@@ -53,13 +53,17 @@ Entry Add [個別]
 class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
-        fields = ['event_status', 'bib', 'name_family', 'name_first', 'kana_family', 'kana_first', 'sex', 'grade', 'club', 'jaaf_branch', 'personal_best']
+        fields = ['event_status', 'bib', 'name_family', 'name_first', 'kana_family', 'kana_first', 'sex', 'grade', 'club', 'jaaf_branch', 'personal_best', 'entry_status']
 
     def __init__(self, *args, **kwargs):
         try:
             event_status = kwargs.pop('event_status')
         except KeyError:
             event_status = False
+        try:
+            entry = kwargs['instance']
+        except KeyError:
+            entry = False
         super(EntryForm, self).__init__(*args, **kwargs)
         self.fields["event_status"].widget.attrs.update({'class': 'form-control form-control-sm'})
         if event_status:
@@ -71,11 +75,17 @@ class EntryForm(forms.ModelForm):
         self.fields["name_first"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'名'})
         self.fields["kana_family"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'セイ'})
         self.fields["kana_first"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'メイ'})
+        self.fields["kana_first"].required = False
         self.fields["sex"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["grade"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["club"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["jaaf_branch"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["personal_best"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'ex. 001234'})
+        if entry:
+            self.fields["entry_status"].widget.attrs.update({'class': 'form-control form-control-sm'})
+        else:
+            self.fields["entry_status"].widget = forms.HiddenInput()
+            self.fields["entry_status"].initial = 'None'
 
         
 """

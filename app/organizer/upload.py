@@ -169,9 +169,12 @@ class EntryHandler:
         return kana_family, kana_first
 
 
-    def clean_PB(self, PB, mode="readable"):
+    def clean_PB(self, PB):
         if not PB:
             raise ValueError("PB == None.")
+        # 半角英数字に変換(全角が混ざった時用)
+        PB = mojimoji.zen_to_han(PB)
+        
         # reg1: 6-num
         m = self.reg1.fullmatch(PB)
         if m and m.span() == (0,6): return PB

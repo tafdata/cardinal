@@ -43,10 +43,9 @@
 										{% endif %}
 								</td>
 								<td>
-										{% if user|in_group:"organizer" %}
-										<!-- 運営者用のリンク -->
-										{% elif user|in_group:"reception" %}
+										{% if user|in_group:"reception" %}
 										<!-- 競技者係用のリンク -->
+										<a href="{% url 'organizer:organizer_entry_add' entry_method='edit' id=entry.id %}" class="btn btn-secondary btn-sm">修正</a>
 										{% elif user|in_group:"guest" %}
 										<!-- ゲストユーザ用のリンク -->
 										{% if not entry.entry_status == 'DNS' %}
@@ -103,10 +102,9 @@
 										{% endif %}
 								</td>
 								<td>
-										{% if user|in_group:"organizer" %}
-										<!-- 運営者用のリンク -->
-										{% elif user|in_group:"reception" %}
+										{% if user|in_group:"reception" %}
 										<!-- 競技者係用のリンク -->
+										<a href="{% url 'organizer:organizer_entry_add' entry_method='edit' id=entry.id %}" class="btn btn-secondary btn-sm">修正</a>
 										{% elif user|in_group:"guest" %}
 										<!-- ゲストユーザ用のリンク -->
 										{% if not entry.entry_status == 'DNS' %}
@@ -163,10 +161,9 @@
 										{% endif %}
 								</td>
 								<td>
-										{% if user|in_group:"organizer" %}
-										<!-- 運営者用のリンク -->
-										{% elif user|in_group:"reception" %}
+										{% if user|in_group:"reception" %}
 										<!-- 競技者係用のリンク -->
+										<a href="{% url 'organizer:organizer_entry_add' entry_method='edit' id=entry.id %}" class="btn btn-secondary btn-sm">修正</a>
 										{% elif user|in_group:"guest" %}
 										<!-- ゲストユーザ用のリンク -->
 										{% if not entry.entry_status == 'DNS' %}

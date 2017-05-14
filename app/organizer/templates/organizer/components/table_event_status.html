@@ -35,10 +35,10 @@
 						<td>
 								{% if user|in_group:"organizer" %}
 								<a href="{% url 'organizer:organizer_SL_web' event_status_id=event_status.event_status.id %}" class="btn btn-primary btn-sm">スタートリスト</a>
-								{% elif user|in_group:"guest" %}
+								{% elif user|in_group:"guest" %}								
 								<a href="{% url 'organizer:guest_SL_web' event_status_id=event_status.event_status.id %}" class="btn btn-danger btn-sm">棄権</a>
 								<a href="{% url 'organizer:guest_entry_add' event_status_id=event_status.event_status.id %}" class="btn btn-primary btn-sm">エントリー</a>
-								{% endif %}
+								{% endif %}								
 						</td>
 				</tr>
 				{% endfor %}

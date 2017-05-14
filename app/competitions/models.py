@@ -100,6 +100,7 @@ class Event(models.Model):
     separator_1 = models.CharField(max_length=4, blank=True)
     separator_2 = models.CharField(max_length=4, blank=True)
     separator_3 = models.CharField(max_length=4, blank=True)
+    start_list_priority = models.IntegerField(default=999999)      # プログラム記載順
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -136,10 +137,10 @@ class EventStatus(models.Model):
         choices=ROUND_CHOICES,
         default='Final',
     )
-    start_list_priority = models.IntegerField(default=100000)      # プログラム記載順
+    start_list_priority = models.IntegerField(default=999999)      # プログラム記載順
     start_list = models.BooleanField(default=False)  # スタートリストを出力
     start_list_2 = models.BooleanField(default=False)  # スタートリスト(最終版)を出力
-    
+
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
