@@ -22,8 +22,8 @@
 				</thead>
 				<tbody>
 						{% for entry in group.entries %}
-						<tr>
-								<td>{% if entry.order_lane %}{{ entry.order_lane }}{% else %}--{% endif %}</td>
+						<tr {% ifchanged entry.order_lane %}{% else %}class="bg-danger text-white"{% endifchanged %}>
+								<td {% if entry.check %}class="bg-warning text-white"{% endif %}>{% if entry.order_lane %}{{ entry.order_lane }}{% else %}--{% endif %}</td>
 								<td>{{ entry.bib }}</td>
 								<td style="white-space:nowrap;">
 										{{ entry.name_family }} {{ entry.name_first }} ({{ entry.grade }})
@@ -82,7 +82,7 @@
 				<tbody>
 						{% for entry in group.entries %}
 						<tr>
-								<td>{% if entry.order_lane == -1 %}-{% else %}{{ entry.order_lane }}{% endif %}</td>
+								<td {% if entry.check %}class="bg-warning text-white"{% endif %}>{% if entry.order_lane == -1 %}-{% else %}{{ entry.order_lane }}{% endif %}</td>
 								<td>{{ entry.bib }}</td>
 								<td style="white-space:nowrap;">
 										{{ entry.name_family }} {{ entry.name_first }} ({{ entry.grade }})
@@ -141,7 +141,7 @@
 				<tbody>
 						{% for entry in group.entries %}
 						<tr>
-								<td>-</td>
+								<td {% if entry.check %}class="bg-warning text-white"{% endif %}>-</td>
 								<td>{{ entry.bib }}</td>
 								<td style="white-space:nowrap;">
 										{{ entry.name_family }} {{ entry.name_first }} ({{ entry.grade }})

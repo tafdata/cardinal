@@ -60,14 +60,25 @@
 								<div class="col-5">{{ form.personal_best }}</div>
 								<div class="col-5"><small>数字6桁で入力てください。<br>(ex. 12"34==>001234, 7m55==>000755)</small></div>
 						</div>
-						{% if form.entry_status.value == 'None' %}
-						{{ form.entry_status }}
-						{% else %}
+						{% if entry %}
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">組</label>
+								<div class="col-5">{{ form.group }}</div>
+						</div>
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">レーン</label>
+								<div class="col-5">{{ form.order_lane }}</div>
+						</div>
 						<div class="form-group row">
 								<label for="example-text-input" class="col-2 col-form-label">状況</label>
 								<div class="col-5">{{ form.entry_status }}</div>
 						</div>
 						{% endif %}
+						<div class="form-group row">
+								<label for="example-text-input" class="col-2 col-form-label">Check</label>
+								<div class="col-5">{{ form.check }}</div>
+								<div class="col-5"><small>プログラムを赤字で出力する.(default=False[しない])</small></div>
+						</div>
 				</div>
 				<div class="card-footer">
 						<button type="submit" class="btn btn-primary">登録</button>

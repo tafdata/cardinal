@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^organizer/sl/edit/(?P<event_status_id>\d+)/$', viewsorganizer.SL_edit, name='organizer_SL_edit'),
     url(r'^organizer/sl/update/(?P<event_status_id>\d+)/$', viewsorganizer.SL_update, name='organizer_SL_update'),
     url(r'^organizer/sl/excel/(?P<sl_type>\S+)/(?P<pk>\d+)/$', viewsorganizer.SL_excel, name='organizer_SL_excel'),
+    url(r'^organizer/sl/excel/(?P<sl_type>\S+)/$', viewsorganizer.SL_excel, name='organizer_SL_excel'),
     
     # Guestページ
     url(r'^guest/$', viewsguest.top, name='guest_top'),

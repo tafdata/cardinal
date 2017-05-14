@@ -62,7 +62,7 @@ class EntryHandler:
         
             # Entry用Pramの準備
             name_family, name_first = self.clean_name(df["name"])
-            kana_family, kana_first = self.clean_name(df["kana"])        
+            kana_family, kana_first = self.clean_kana(df["kana"])        
             #print(name_family, name_first, kana_family, kana_first)
             pb = self.clean_PB(df["PB"])
             #print("PB: ", pb)
@@ -73,6 +73,10 @@ class EntryHandler:
             if not order_lane: order_lane = -1
             #print("group, order_lane: ", group, order_lane, type(group))
             #  Entry Object の作成
+            if self.entry_status == 'Entry_2':
+                check = True
+            else:
+                check = False
             entry = Entry.objects.create(
                 event_status=event_status,
                 bib=df["bib"],
@@ -88,6 +92,7 @@ class EntryHandler:
                 group=group,
                 order_lane=order_lane,
                 entry_status=self.entry_status,
+                check=check,
             )
             return True
         except ValueError as e:
@@ -157,7 +162,7 @@ class EntryHandler:
         if not kana:
             raise ValueError("kana == None.")
         # 半角==>全角へ変換
-        kana = mojimoji.han_to_zen(kana, digit=False, ascii=False)            
+        kana = mojimoji.han_to_zen(kana, digit=False, ascii=False)
         kana = kana.split()
         if len(kana) == 2: kana_family, kana_first = kana[0], kana[1]
         elif len(kana) == 1: kana_family, kana_first = kana[0], ''

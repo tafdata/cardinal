@@ -6,9 +6,10 @@ from openpyxl.styles import Font
 from openpyxl.styles.colors import Color
 from openpyxl.styles import Alignment
 from openpyxl.styles import Border, Side
-
+from openpyxl.styles import colors
 
 from django.db.models.aggregates import Count
+from django.db.models import Max
 from django.core.exceptions import ObjectDoesNotExist
 
 # Models
@@ -48,6 +49,7 @@ class ProgramMaker:
         self.comp = comp
         # Font
         self.font_small = Font(name='ＭＳ ゴシック',charset=128,size=6,)
+        self.font_red = Font(name='ＭＳ ゴシック',charset=128,size=9,color=colors.RED)
         # Alignment
         self.al_wrap = Alignment(vertical='center', horizontal='center', wrapText=True)
         self.al_left = Alignment(vertical='center', horizontal='left')
@@ -180,7 +182,6 @@ class ProgramMaker:
         # 2行目
         self.write_cell(ws.cell(row=row, column=1), u"ﾚｰﾝ")
         self.write_cell(ws.cell(row=row, column=2), u"No.")
-        print(self.cell_posi(row+1, "C")+":"+self.cell_posi(row+1,"D"))
         ws.merge_cells(self.cell_posi(row, "C")+":"+self.cell_posi(row,"D"))
         self.write_cell(ws.cell(row=row, column=3), u"氏名") # Merged
         self.write_cell(ws.cell(row=row, column=5), u"学年")
@@ -224,7 +225,6 @@ class ProgramMaker:
         row = self.write_head_Field(ws,row, group=group)
         # 試技
         for i in np.arange(6,33, 3):
-            print(i)
             ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i+2)
             self.write_cell(ws.cell(row=row, column=i), "m")
             ws.cell(row=row, column=i).alignment =Alignment(vertical='bottom', horizontal='center')
@@ -276,7 +276,10 @@ class ProgramMaker:
     Write Row
     """
     def write_row_Track(self, ws, row, entry, lane):
-        self.write_cell(ws.cell(row=row, column=1), lane)
+        if entry.entry_status == 'DNS' or entry.check:
+            self.write_cell(ws.cell(row=row, column=1), lane, font=self.font_red)
+        else:
+            self.write_cell(ws.cell(row=row, column=1), lane)
         self.write_cell(ws.cell(row=row, column=2), entry.bib)
         self.write_cell(ws.cell(row=row, column=3), self.format_name(entry))
         self.write_cell(ws.cell(row=row, column=4), self.format_kana(entry))
@@ -286,6 +289,9 @@ class ProgramMaker:
         self.write_cell(ws.cell(row=row, column=8), format_mark(entry.personal_best, entry.event_status.event))
         # 記録欄
         self.write_cell(ws.cell(row=row, column=9), "(   )")
+        if entry.entry_status == 'DNS':
+            ws.merge_cells(start_row=row,start_column=10,end_row=row,end_column=11)
+            self.write_cell(ws.cell(row=row, column=10), "DNS", font=self.font_red)
         ws.cell(row=row, column=9).border = self.border_bottom
         ws.cell(row=row, column=10).border = self.border_bottom
         ws.cell(row=row, column=11).border = self.border_bottom
@@ -296,7 +302,10 @@ class ProgramMaker:
     def write_row_Field(self, ws,row, entry, order):
         # 試技順
         ws.merge_cells(self.cell_posi(row, "A")+":"+self.cell_posi(row+1,"A"))
-        self.write_cell(ws.cell(row=row, column=1), order)
+        if entry.entry_status == 'DNS' or entry.check:
+            self.write_cell(ws.cell(row=row, column=1), order, font=self.font_red)
+        else:
+            self.write_cell(ws.cell(row=row, column=1), order)
         # No, 学年
         self.write_cell(ws.cell(row=row, column=2), entry.bib)
         self.write_cell(ws.cell(row=row+1, column=2), entry.grade)
@@ -323,6 +332,8 @@ class ProgramMaker:
         ws.merge_cells(self.cell_posi(row, "AG")+":"+self.cell_posi(row+1,"AG"))
         # 順位
         ws.merge_cells(self.cell_posi(row, "AH")+":"+self.cell_posi(row+1,"AH"))
+        if entry.entry_status == 'DNS':
+            self.write_cell(ws.cell(row=row, column=33), "DNS", font=self.font_red)
         
         # Borderの設定
         for i in range(1,35):
@@ -341,8 +352,14 @@ class ProgramMaker:
             self.write_cell(ws.cell(row=row, column=i), "m", font=self.font_small)
             self.write_cell(ws.cell(row=row+1, column=i), "＋･－", font=self.font_small, al=self.al_left)        
         # 順位
-        if trial == 6: ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
-        else: ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
+        if trial == 6:
+            ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
+            if entry.entry_status == 'DNS':
+                self.write_cell(ws.cell(row=row, column=14), "DNS", font=self.font_red)
+        else:
+            ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
+            if entry.entry_status == 'DNS':
+                self.write_cell(ws.cell(row=row, column=10), "DNS", font=self.font_red)
         
         # Borderの設定
         for i in range(1,cell_end+1):
@@ -361,8 +378,14 @@ class ProgramMaker:
             ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i)
             self.write_cell(ws.cell(row=row, column=i), "m", al=self.al_bottom)
         # 順位
-        if trial == 6: ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
-        else: ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
+        if trial == 6:
+            ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
+            if entry.entry_status == 'DNS':
+                self.write_cell(ws.cell(row=row, column=14), "DNS", font=self.font_red)
+        else:
+            ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
+            if entry.entry_status == 'DNS':
+                self.write_cell(ws.cell(row=row, column=10), "DNS", font=self.font_red)
         
         # Borderの設定
         for i in range(1,cell_end+1):
@@ -387,12 +410,12 @@ class ProgramMaker:
         for i in [0,1,2,3,4,5,6,7]:
             try:
                 entry = entries.get(order_lane=i+1)
+                c += 1
             except Entry.DoesNotExist:
                 entry = self.entry_Null
             row = self.write_row_Track(ws, row, entry, i+1)
-            c += 1
         # Finish
-        print("> Write_group_lane8: write ", str(c), " entries")
+        print("> Write_group_lane8: write ", str(c),"/", len(entries), " entries")
         return row       
 
             
@@ -406,16 +429,17 @@ class ProgramMaker:
         # Header
         row = self.write_head_Track(ws, row, group=group, wind=wind)
         # エントリーの書き込み
+        max_lane = entries.aggregate(Max('order_lane'))
         c = 0
-        for i in np.arange(0, len(entries), 1):
+        for i in np.arange(0, max_lane["order_lane__max"], 1):
             try:
                 entry = entries.get(order_lane=i+1)
+                c += 1
             except Entry.DoesNotExist:
                 entry = self.entry_Null
-            row = self.write_row_Track(ws, row+i, entry, i+1)
-            c += 1
+            row = self.write_row_Track(ws, row, entry, i+1)
         # Finish
-        print("> Write_group_laneN: write ", str(c), " entries")
+        print("> Write_group_laneN: write ", str(c),"/", len(entries), " entries")
         return row
 
 
@@ -424,15 +448,10 @@ class ProgramMaker:
         row = self.write_head_HJPV(ws, row)
         # エントリーの書き込み
         c = 0
-        for i in np.arange(0, len(entries), 1):
-            try:
-                entry = entries.get(order_lane=i+1)
-            except ObjectDoesNotExist:
-                entry = self.entry_Null
-            row = self.write_row_HJPV(ws, row, entry, i+1)
-            c += 1
+        for entry in entries:
+            row = self.write_row_HJPV(ws, row, entry, entry.order_lane)
         # Finish
-        print("> Write_group_HJPV: write ", str(c), " entries")
+        print("> Write_group_HJPV: write ", str(c),"/", len(entries), " entries")               
         return row
 
 
@@ -449,15 +468,10 @@ class ProgramMaker:
         row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
         # エントリーの書き込み
         c = 0
-        for i in np.arange(0, len(entries), 1):
-            try:
-                entry = entries.get(order_lane=i+1)
-            except ObjectDoesNotExist:
-                entry = self.entry_Null            
-            row = self.write_row_LJTJ(ws, row, entry, i+1, trial=trial)
-            c += 1
+        for entry in entries:
+            row = self.write_row_LJTJ(ws, row, entry, entry.order_lane, trial=trial)
         # Finish
-        print("> Write_group_LJTJ: write ", str(c), " entries")            
+        print("> Write_group_LJTJ: write ", str(c),"/", len(entries), " entries")
         return row
 
             
@@ -466,23 +480,24 @@ class ProgramMaker:
         row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
         # エントリーの書き込み
         c = 0
-        for i in np.arange(0, len(entries), 1):
-            try:
-                entry = entries.get(order_lane=i+1)
-            except Entry.DoesNotExist:
-                entry = self.entry_Null            
-            row = self.write_row_Throw(ws, row, entry, i+1, trial=trial)
-            c += 1
+        for entry in entries:
+            row = self.write_row_Throw(ws, row, entry, entry.order_lane, trial=trial)
         # Finish
-        print("> Write_group_Throw: write ", str(c), " entries")               
+        print("> Write_group_Throw: write ", str(c),"/", len(entries), " entries")               
         return row       
 
     
     def write_groups(self, ws, row, event, Entries):
         groups = Entries.values_list('group', flat=True).order_by('group').distinct()
         for group in groups:
-            # 組数が負の場合は書き出さない
-            if group < 1: continue
+            # 組数が負の場合
+            if group == -123 :
+                # 補欠は書き出し
+                row = self.write_group_laneN(ws, row, Entries, group=None, wind=False)
+                row += 2
+                continue
+            elif group < 0:
+                continue # 番組編成　未完了は書き出さない
             
             entries_g = Entries.filter(group=group).order_by('order_lane')
             # エントリーを書き出し
@@ -618,6 +633,10 @@ class ProgramMaker:
         # - GR: 大会記録オブジェクト
         # - VS,SUb, OP: Entryオブジェクト(対校, 補欠, OP)
 
+        # Entryがない場合
+        if not VS and not Sub and not OP:
+            return row
+        
         # Title
         row = self.write_title(ws, row, event, GR)
 
@@ -628,6 +647,7 @@ class ProgramMaker:
             row = self.write_groups(ws, row, event, VS)            
         ## 補欠
         if Sub:
+            print("sub", Sub)
             row = self.write_class(ws, row, "補欠")
             row = self.write_groups(ws, row, event, Sub)
         ## OP
@@ -651,22 +671,22 @@ class ProgramMaker:
         ## 対校
         try:
             event_status = EventStatus.objects.filter(comp=comp, event=event, section='VS')
-            VS = Entry.objects.filter(event_status=event_status).order_by('group', 'order_lane')
+            VS = Entry.objects.filter(event_status=event_status, group__gt=0).order_by('group', 'order_lane')
         except (EventStatus.DoesNotExist, Entry.DoesNotExist) as e:
             VS = None
             print(e, "@cardinal_write_sheet_by_name")
         ## 補欠
         try:
-            event_status = EventStatus.objects.filter(comp=comp, event=event, section='Sub')
-            Sub = Entry.objects.filter(event_status=event_status).order_by('group', 'order_lane')
+            event_status = EventStatus.objects.filter(comp=comp, event=event, section='VS')
+            Sub = Entry.objects.filter(event_status=event_status, group=-123).order_by('order_lane')
         except (EventStatus.DoesNotExist, Entry.DoesNotExist) as e:
             Sub = None
             print(e, "@cardinal_write_sheet_by_name")
         ## OP
         try:
             event_status = EventStatus.objects.filter(comp=comp, event=event, section='OP')
-            OP = Entry.objects.filter(event_status=event_status).order_by('group', 'order_lane')
-        except (EventStatus.DoesNotExist, Entry.DoesNotExist) as e:            
+            OP = Entry.objects.filter(event_status=event_status, group__gt=0).order_by('group', 'order_lane')
+        except (EventStatus.DoesNotExist, Entry.DoesNotExist) as e:
             OP = None
             print(e, "@cardinal_write_sheet_by_name")
 
@@ -722,10 +742,7 @@ class ProgramMaker:
 
     def cardinal_create_sheet_by_events(self, wb, comp, events, sheet_name=None):
         # 複数種目書き出し
-        # Create Sheet
-        ws = wb.create_sheet()
-        row = 1
-        if sheet_name: ws.title = sheet_name
+
         # Event Objectがない場合
         if len(events) == 0:
             return row;
@@ -733,18 +750,26 @@ class ProgramMaker:
             # Event Objectが同じProgram Typeを持つかチェック
             program_type = None
             for event in events:
-                if program_type:
-                    if program_type == event.program_type:
-                        continue
+                if program_type == 'Track' and (event.program_type == 'Track8' or event.program_type == 'TrackN'):
+                    continue
+                elif program_type == event.program_type:
+                    continue
+                elif program_type == None:
+                    if (event.program_type == 'Track8' or event.program_type == 'TrackN'):
+                        program_type = 'Track'
                     else:
-                        print("Diffelent Program type: ", program_type, event.program_type)
-                        return row
+                        program_type = event.program_type
                 else:
-                    program_type = event.program_type                    
-                    
+                    print("Diffelent Program type: ", program_type, event.program_type)
+                    return row
+
+        # Create Sheet
+        ws = wb.create_sheet()
+        row = 1
+        if sheet_name: ws.title = sheet_name
         # 書き出し
         for event in events:
-            row = self.cardinal_write_by_event(ws, row, comp, event) 
+            row = self.cardinal_write_by_event(ws, row, comp, event)
         # シートのスタイリング
         row = self.style_sheet(ws, row, event)
 
@@ -837,7 +862,7 @@ class ProgramMaker:
         return wb
 
 
-    def cardinal_create_workbook_track(self, comp, sex=None):
+    def cardinal_create_workbook_track(self, comp):
         # Params
         # - comp: Comp obkject
         # - sex: 性別
@@ -848,20 +873,31 @@ class ProgramMaker:
         ws.title = 'None'
 
         #書き出し
+        ## 男子
         try:
             ## プログラムタイプでEventを取得
             events = Event.objects.filter(
-                program_type__in=["Track8","TrackN"]
-            ).order_by("sex", "start_list_priority")
-            if sex:
-                events = events.filter(sex=sex)
+                program_type__in=["Track8","TrackN"],
+                sex='M',
+            ).order_by("start_list_priority", "name")
             ## シートの作成
-            for event in events:
-                sheet_name = event.sex+event.name
-                self.cardinal_create_sheet_by_event(wb, comp, event, sheet_name=sheet_name)
-
+            sheet_name = u"男トラック"
+            self.cardinal_create_sheet_by_events(wb, comp, events, sheet_name=sheet_name)
         except Entry.DoesNotExist as e:
             print(e, "@cardinal_create_workbook_field")
+
+        ## 女子
+        try:
+            ## プログラムタイプでEventを取得
+            events = Event.objects.filter(
+                program_type__in=["Track8","TrackN"],
+                sex='W',
+            ).order_by("start_list_priority", "name")
+            ## シートの作成
+            sheet_name = u"女トラック"
+            self.cardinal_create_sheet_by_events(wb, comp, events, sheet_name=sheet_name)
+        except Entry.DoesNotExist as e:
+            print(e, "@cardinal_create_workbook_field")            
             
         ws = wb.get_sheet_by_name('None')
         wb.remove_sheet(ws)

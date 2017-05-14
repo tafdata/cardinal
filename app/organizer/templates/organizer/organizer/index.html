@@ -111,10 +111,8 @@
 																{% table_event comp %}
 																<div>
 																		<h5>プログラム</h5>
-																		<a href="" class="card-link">男子トラック</a>
-																		<a href="" class="card-link">男子フィールド</a>
-																		<a href="" class="card-link">女子トラック</a>
-																		<a href="" class="card-link">女子フィールド</a>
+																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='track' %}" class="card-link">トラック</a>
+																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='field' %}" class="card-link">フィールド</a>
 																</div>
 														</div>
 												</div>

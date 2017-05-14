@@ -83,7 +83,9 @@ def entry_add(request, entry_method, id=None):
             flg, msg = check_entry(new_entry)
             if flg:
                 if entry_method == 'entry': new_entry.entry_status = 'Entry'
-                elif entry_method == 'entry2': new_entry.entry_status = 'Entry_2'
+                elif entry_method == 'entry2':
+                    new_entry.entry_status = 'Entry_2'
+                    new_entry.check = True
                 new_entry.save()
                 if entry_method == 'edit':
                     return redirect('organizer:organizer_SL_web', event_status_id=entry.event_status.id)
@@ -223,10 +225,15 @@ def SL_excel(request, sl_type=None, pk=None):
         event = event_status.event
         wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
         filename = event_status.section+event.sex+event.name+".xlsx"
+    elif sl_type == "track":
+        wb = PM.cardinal_create_workbook_track(comp)
+        filename = "Track.xlsx"
     elif sl_type == "field":
         wb = PM.cardinal_create_workbook_field(comp)
         filename = "Field.xlsx"
-
+    else:
+        return redirect('organizer:organizer_top')
+    
     # 保存
     output = io.BytesIO()
     wb.save(output)

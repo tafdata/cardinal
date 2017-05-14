@@ -131,3 +131,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 )
+
+
+# Form Setting
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000

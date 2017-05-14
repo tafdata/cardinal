@@ -53,7 +53,7 @@ Entry Add [個別]
 class EntryForm(forms.ModelForm):
     class Meta:
         model = Entry
-        fields = ['event_status', 'bib', 'name_family', 'name_first', 'kana_family', 'kana_first', 'sex', 'grade', 'club', 'jaaf_branch', 'personal_best', 'entry_status']
+        fields = ['event_status', 'bib', 'name_family', 'name_first', 'kana_family', 'kana_first', 'sex', 'grade', 'club', 'jaaf_branch', 'personal_best', 'entry_status', 'group', 'order_lane', 'check']
 
     def __init__(self, *args, **kwargs):
         try:
@@ -81,12 +81,18 @@ class EntryForm(forms.ModelForm):
         self.fields["club"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["jaaf_branch"].widget.attrs.update({'class': 'form-control form-control-sm'})
         self.fields["personal_best"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'ex. 001234'})
+        self.fields["check"].widget.attrs.update({'class': 'form-control form-control-sm'})
+        self.fields["check"].required = False
         if entry:
+            # Ediyの時
             self.fields["entry_status"].widget.attrs.update({'class': 'form-control form-control-sm'})
+            self.fields["group"].widget.attrs.update({'class': 'form-control form-control-sm'})
+            self.fields["order_lane"].widget.attrs.update({'class': 'form-control form-control-sm'})
         else:
-            self.fields["entry_status"].widget = forms.HiddenInput()
-            self.fields["entry_status"].initial = 'None'
-
+            self.fields["entry_status"].required = False
+            self.fields["group"].required = False
+            self.fields["entry_status"].required = False
+            
         
 """
 Entry Add [一括]
@@ -125,7 +131,7 @@ class SLEditForm(forms.ModelForm):
     
     class Meta:
         model = Entry
-        fields = ['id', 'group', 'order_lane', 'entry_status']
+        fields = ['id', 'group', 'order_lane', 'entry_status', 'check']
         widgets = {
             'group': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder':'組'}),
             'order_lane': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
@@ -145,7 +151,8 @@ class SLEditForm(forms.ModelForm):
         self.fields["group"].widget.attrs.update()
         self.fields["order_lane"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
         self.fields["entry_status"].widget.attrs.update({'class': 'form-control form-control-sm', 'placeholder':'レーン/試技順'})
-
+        self.fields["check"].widget.attrs.update({'class': 'form-control form-control-sm'})
+        self.fields["check"].required = False
 
 
 

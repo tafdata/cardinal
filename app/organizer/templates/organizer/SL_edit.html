@@ -48,6 +48,7 @@
 																				<th>所属</th>
 																				<th>参考記録</th>
 																				<th>Status</th>
+																				<th>Check</th>
 																		</tr>
 																</thead>
 																<tbody>
@@ -69,6 +70,7 @@
 																				<td>{{ form.club.value }}</td>
 																				<td>{% format_mark form.pb.value  event_status.event %}</td>
 																				<td>{{ form.status.value }}</td>
+																				<td>{{ form.check }}</td>
 																		</tr>
 																		{% endfor %}
 																</tbody>

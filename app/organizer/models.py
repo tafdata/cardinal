@@ -43,7 +43,7 @@ class Entry(models.Model):
         choices=ENTRY_STATUS_CHOICES,
         default='Entry'
     )
-    color_red = models.BooleanField(default=False)  # スタートリスト出力時に赤文字
+    check = models.BooleanField(default=False)  # スタートリスト出力時に赤文字
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

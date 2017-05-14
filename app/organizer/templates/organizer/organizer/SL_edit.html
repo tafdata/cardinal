@@ -36,11 +36,25 @@
 																				<th>所属</th>
 																				<th>参考記録</th>
 																				<th>Status</th>
+																				<th>Check</th>
 																		</tr>
 																</thead>
 																<tbody>
 																		{% for form in formset %}
 																		{% if  form.group.value > 0 %}
+																		{% ifchanged  form.group.value %}
+																		<tr class="table-info">
+																				<th class="px-3">{{ form.group.value }}組</th>
+																				<td></td>
+																				<td></td>
+																				<td></td>
+																				<td></td>
+																				<td></td>
+																				<td></td>
+																				<td></td>
+																				<td></td>
+																		</tr>
+																		{% endifchanged %}
 																		{{ form.id }}
 																		{{ form.bib }}
 																		{{ form.name }}
@@ -58,6 +72,7 @@
 																				<td>{{ form.club.value }}</td>
 																				<td>{% format_mark form.pb.value  event_status.event %}</td>
 																				<td>{{ form.entry_status }}</td>
+																				<td>{{ form.check }}</td>
 																		</tr>
 																		{% endif %}
 																		{% endfor %}
