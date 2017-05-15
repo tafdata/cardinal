@@ -61,6 +61,9 @@ class ProgramMaker:
         event_status = EventStatus.objects.all()[0]
         self.entry_Null = Entry(event_status=event_status, bib="", name_family="", name_first="", kana_family="", kana_first="", grade="", club="", jaaf_branch="", personal_best="", sex="M", entry_status="Entry")
 
+        # １ページに入る行数
+        self.row_page_max = 56       # 高さ13では56行で1ページ
+
         
     """
     Utils
@@ -78,16 +81,16 @@ class ProgramMaker:
     def format_name(self, entry):
         # 名前
         # できるだけ5文字に近くして戻す
-        name_len_sub = 4 - len(entry.name_family)+len(entry.name_first)
-        if  name_len_sub ==  0:
+        name_len  = len(entry.name_family)+len(entry.name_first)
+        if name_len == 4:
             # 4文字
-            return entry.name_family + u"\3000" + entry.name_first
-        elif  name_len_sub < 0:
+            return entry.name_family + u"\u3000" + entry.name_first
+        elif  name_len < 4:
             # 4文字未満
             name = entry.name_family
             for i in range(0, 4 - name_len):
-                name += u"\3000"
-            return (name + u"\3000" + entry.name_first)
+                name += u"\u3000"
+            return (name + u"\u3000" + entry.name_first)
         else:
             # 5文字以上
             return entry.name_family + entry.name_first
@@ -97,6 +100,80 @@ class ProgramMaker:
         kana = entry.kana_family + " " + entry.kana_first
         return mojimoji.zen_to_han(kana)
 
+
+    def get_current_page(self, row):
+        """
+        現在書き込みが完了している行(row)が何ページ目の何行目かを返す.
+        """
+        # Param
+        # - row: 書き始めの行番号
+        
+        #現在の場所を計算
+        page_current = int((row-1)/self.row_page_max)+1
+        row_current = (row-1)%self.row_page_max
+        row_left = self.row_page_max - row_current
+
+        return {"page": page_current, "row": row_current, "row_left": row_left}
+
+
+    def new_page(self, row):
+        """
+        rowを次のページの1行目の行番号を返す
+        """
+        current_page = self.get_current_page(row)
+        new_row = current_page["page"] * self.row_page_max + 1
+        return new_row
+    
+
+    def check_group_in_one_page(self, row, entry_num, head_row=2):
+        # Param
+        # - row: 書き始めの行番号
+        # - entry_num: 書き込みエントリー数
+        # - type: [ track, field ]
+
+        current_page = self.get_current_page(row)
+        row_need = head_row + entry_num*2
+
+        if current_page["row_left"] > row_need:
+            # 現在ページの空きに書き込める場合
+            return row, 'ThisPage'
+        elif row_need < self.row_page_max:
+            # １ページに1組全てを書き込める場合は改ページ
+            return new_page(row), 'NewPage'
+        else:
+            # 途中で改ページ
+            return row, 'SplitPage'
+
+        
+    
+    def check_page(self, row, entry_num, type, title=True, ):
+        # Param
+        # - row: 書き始めの行番号
+        # - entry_num: 書き込みエントリー数
+        # - type: [ track, field ]
+        row_page_max = 56       # 高さ13では56行で1ページ
+        # Return
+        # - 次に書き込む番号
+        
+        # 書き込みの最後の行の見積もり
+        if type == 'track':
+            row_end = entry_num + 2
+        else:
+            row_end = entry_num*2 + 2
+
+        # 書き込むページ範囲を見積もり
+        page_current = int(row/row_page_max)
+        page_end = int(row_end/row_page_max)
+        if row%row_page_max == 0: page_current = page_current - 1
+        if row_end%row_page_max == 0: page_end = page_end - 1
+        
+        # ページをまたぐか否かの判断
+        if page_current == page_end: # 改ページの必要なし
+            return row
+        elif page_current < page_end:
+            return page_end * row_page_max
+
+    
     """
     Write Title
     """
@@ -403,6 +480,12 @@ class ProgramMaker:
         # - row: 書き込み開始行番号
         # - entries: QuerySet of Entry Objects        
 
+        # 同じページに全ての組みが書き込めるか確認
+        current_page = self.get_current_page(row)
+        if current_page["row_left"] < 10:
+            # 8レーン全て書き込み不可の場合、改ページ
+            row = self.new_page(row)
+            
         # Header
         row = self.write_head_Track(ws, row, group)
         # エントリーの書き込み
@@ -425,11 +508,18 @@ class ProgramMaker:
         # - ws: worksheet
         # - row: 書き込み開始行番号
         # - entries: QuerySet of Entry Objects
-        
+
+        # 同じページに全ての組みが書き込めるか確認
+        current_page = self.get_current_page(row)
+        max_lane = entries.aggregate(Max('order_lane')) # 最大のレーン
+        row_need = 2 + max_lane["order_lane__max"]                         # 書き込みに必要な行数の見積もり
+        if current_page["row_left"] < row_need:
+            # 8レーン全て書き込み不可の場合、改ページ
+            row = self.new_page(row)
+            
         # Header
         row = self.write_head_Track(ws, row, group=group, wind=wind)
         # エントリーの書き込み
-        max_lane = entries.aggregate(Max('order_lane'))
         c = 0
         for i in np.arange(0, max_lane["order_lane__max"], 1):
             try:
@@ -444,18 +534,32 @@ class ProgramMaker:
 
 
     def write_group_HJPV(self, ws, row,  entries, group=False):
+        # このページに全て書き込み可能か判定
+        row, flg = self.check_group_in_one_page(row, len(entries))
         # Header
         row = self.write_head_HJPV(ws, row)
         # エントリーの書き込み
         c = 0
-        for entry in entries:
-            row = self.write_row_HJPV(ws, row, entry, entry.order_lane)
+        if flg == 'SplitPage':  # ページ分割が必要な場合
+            for entry in entries:
+                current_page = self.get_current_page(row)
+                if current_page["row_left"] < 2: # ページ分割
+                    row = self.new_page(row)
+                    row = self.write_head_HJPV(ws, row, trial=trial, group=group)
+                row = self.write_row_HJPV(ws, row, entry, entry.order_lane, trial=trial)
+                c +=1
+        else:                   # ページ分割不要
+            for entry in entries:
+                row = self.write_row_HJPV(ws, row, entry, entry.order_lane)
+                c += 1
         # Finish
         print("> Write_group_HJPV: write ", str(c),"/", len(entries), " entries")               
         return row
 
 
     def write_group_LJTJ(self, ws, row,  entries, trial=None, group=False):
+        # このページに全て書き込み可能か判定
+        row, flg = self.check_group_in_one_page(row, len(entries))
         # Trial
         if not trial:
             try:
@@ -468,20 +572,42 @@ class ProgramMaker:
         row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
         # エントリーの書き込み
         c = 0
-        for entry in entries:
-            row = self.write_row_LJTJ(ws, row, entry, entry.order_lane, trial=trial)
+        if flg == 'SplitPage':  # ページ分割が必要な場合
+            for entry in entries:
+                current_page = self.get_current_page(row)
+                if current_page["row_left"] < 2: # ページ分割
+                    row = self.new_page(row)
+                    row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
+                row = self.write_row_LJTJ(ws, row, entry, entry.order_lane, trial=trial)
+                c +=1
+        else:                   # ページ分割不要
+            for entry in entries:
+                row = self.write_row_LJTJ(ws, row, entry, entry.order_lane, trial=trial)
+                c += 1
         # Finish
         print("> Write_group_LJTJ: write ", str(c),"/", len(entries), " entries")
         return row
 
             
     def write_group_Throw(self, ws, row,  entries, trial=6, group=False):
+        # このページに全て書き込み可能か判定
+        row, flg = self.check_group_in_one_page(row, len(entries))
         # Header
         row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
         # エントリーの書き込み
         c = 0
-        for entry in entries:
-            row = self.write_row_Throw(ws, row, entry, entry.order_lane, trial=trial)
+        if flg == 'SplitPage':  # ページ分割が必要な場合
+            for entry in entries:
+                current_page = self.get_current_page(row)
+                if current_page["row_left"] < 2: # ページ分割
+                    row = self.new_page(row)
+                    row = self.write_head_LJTJThrow(ws, row, trial=trial, group=group)
+                row = self.write_row_Throw(ws, row, entry, entry.order_lane, trial=trial)
+                c +=1
+        else:
+            for entry in entries:
+                row = self.write_row_Throw(ws, row, entry, entry.order_lane, trial=trial)
+                c +=1
         # Finish
         print("> Write_group_Throw: write ", str(c),"/", len(entries), " entries")               
         return row       
@@ -587,33 +713,6 @@ class ProgramMaker:
         elif event.program_type == 'LJTJ' or event.program_type == 'Throw':
             return self.style_LJTJThrow(ws, row)
 
-        
-    def check_page(self, row, entry_num, type, title=True, ):
-        # Param
-        # - row: 書き始めの行番号
-        # - entry_num: 書き込みエントリー数
-        # - type: [ track, field ]
-        row_page_max = 56       # 高さ13では56行で1ページ
-        # Return
-        # - 次に書き込む番号
-        
-        # 書き込みの最後の行の見積もり
-        if type == 'track':
-            row_end = entry_num + 2
-        else:
-            row_end = entry_num*2 + 2
-
-        # 書き込むページ範囲を見積もり
-        page_current = int(row/row_page_max)
-        page_end = int(row_end/row_page_max)
-        if row%row_page_max == 0: page_current = page_current - 1
-        if row_end%row_page_max == 0: page_end = page_end - 1
-        
-        # ページをまたぐか否かの判断
-        if page_current == page_end: # 改ページの必要なし
-            return row
-        elif page_current < page_end:
-            return page_end * row_page_max
 
         
     """
@@ -655,8 +754,8 @@ class ProgramMaker:
             row = self.write_class(ws, row, "オープン")
             row = self.write_groups(ws, row, event, OP) 
 
-        return row
-
+        # 改ページ(次のページへ)
+        return self.new_page(row)
 
     """
     Write Sheet through Django Cardinal System

@@ -219,12 +219,13 @@ def SL_excel(request, sl_type=None, pk=None):
     if sl_type == "event":
         event = get_object_or_404(Event, pk=pk)
         wb = PM.cardinal_create_workbook_by_event(comp, event)
-        filename = event.sex+event.name+".xlsx"
+        filename = str(event.sex)+str(event.short)+".xlsx"
+        print(filename)
     elif sl_type == "event_status":
         event_status = get_object_or_404(EventStatus, pk=pk)
         event = event_status.event
         wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
-        filename = event_status.section+event.sex+event.name+".xlsx"
+        filename = str(event_status.section+event.sex+event.name+".xlsx")
     elif sl_type == "track":
         wb = PM.cardinal_create_workbook_track(comp)
         filename = "Track.xlsx"
