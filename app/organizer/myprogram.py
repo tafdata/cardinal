@@ -25,7 +25,7 @@ Default Styling
 # Color
 color_default = Color(theme=1, tint=0.0)
 # Font
-font_default = Font(name='ＭＳ ゴシック',charset=128,family=3.0,b=False,i=False,strike=None,outline=None,shadow=None,condense=None,color=color_default,size=9,)
+font_default = Font(name='ＭＳ ゴシック',charset=128,family=3.0,b=False,i=False,strike=None,outline=None,shadow=None,condense=None,color=color_default,size=8,)
 # Alignment
 al_default = Alignment(shrinkToFit=None, textRotation=0, vertical='center', horizontal='center', indent=0.0, justifyLastLine=None, relativeIndent=0.0, wrapText=None, readingOrder=0.0)
 # Border
@@ -53,16 +53,22 @@ class ProgramMaker:
         # Alignment
         self.al_wrap = Alignment(vertical='center', horizontal='center', wrapText=True)
         self.al_left = Alignment(vertical='center', horizontal='left')
+        self.al_right = Alignment(vertical='center', horizontal='right')
         self.al_bottom = Alignment(vertical='bottom', horizontal='center')
-        # Border
+        # Borde
         thin = Side(border_style="thin", color="000000")
+        thick = Side(border_style="thick", color="000000")
         self.border_bottom = Border(top=None, left=None, right=None, bottom=thin)
         self.border_all = Border(top=thin, left=thin, right=thin, bottom=thin)
+        self.border_all_thick = Border(top=thick, left=thick, right=thick, bottom=thick)
         event_status = EventStatus.objects.all()[0]
         self.entry_Null = Entry(event_status=event_status, bib="", name_family="", name_first="", kana_family="", kana_first="", grade="", club="", jaaf_branch="", personal_best="", sex="M", entry_status="Entry")
 
         # １ページに入る行数
         self.row_page_max = 56       # 高さ13では56行で1ページ
+        # 前の組を書き込んだ行
+        self.row_prev_group_top = 1
+        self.row_prev_group_last = 1
 
         
     """
@@ -122,6 +128,7 @@ class ProgramMaker:
         """
         current_page = self.get_current_page(row)
         new_row = current_page["page"] * self.row_page_max + 1
+        # print('NewPage', new_row, (new_row%self.row_page_max))
         return new_row
     
 
@@ -136,12 +143,15 @@ class ProgramMaker:
 
         if current_page["row_left"] > row_need:
             # 現在ページの空きに書き込める場合
+            # print('ThisPage', row)
             return row, 'ThisPage'
         elif row_need < self.row_page_max:
             # １ページに1組全てを書き込める場合は改ページ
-            return new_page(row), 'NewPage'
+            # print('NewPage', row, (row%self.row_page_max+1))
+            return self.new_page(row), 'NewPage'
         else:
             # 途中で改ページ
+            # print('SplitPage', row)
             return row, 'SplitPage'
 
         
@@ -181,14 +191,20 @@ class ProgramMaker:
         # 種目名
         ws.merge_cells(start_row=row,start_column=1,end_row=row+2,end_column=3)
         self.write_cell(ws.cell(row=row, column=1), event.name)
-        ws.cell(row=row, column=1).font = Font(size=24)
+        ws.cell(row=row, column=1).font = Font(size=28)
+        # for i in range(3):
+        #     for j in range(3):
+        #         ws.cell(row=row+i, column=j+1).border = self.border_all_thick
+
         # 大会記録
         if GR:        
             self.write_cell(ws.cell(row=row+1, column=4), '大会記録')
-            self.write_cell(ws.cell(row=row+1, column=5), GR.mark) #記録
+            self.write_cell(ws.cell(row=row+1, column=5), format_mark(GR.mark, event)) #記録
+            ws.merge_cells(start_row=row+1,start_column=6,end_row=row+1,end_column=7)
             self.write_cell(ws.cell(row=row+1, column=6), self.format_name(GR)) #氏名
-            self.write_cell(ws.cell(row=row+1, column=7), GR.club)#所属
-            self.write_cell(ws.cell(row=row+1, column=8), GR.year) #年
+            ws.merge_cells(start_row=row+1,start_column=8,end_row=row+1,end_column=9)
+            self.write_cell(ws.cell(row=row+1, column=8), GR.club)#所属
+            self.write_cell(ws.cell(row=row+1, column=10), GR.year) #年
         return row+3
         
         
@@ -196,16 +212,19 @@ class ProgramMaker:
         # 種目名
         ws.merge_cells(start_row=row,start_column=1,end_row=row+2,end_column=3)
         self.write_cell(ws.cell(row=row, column=1), event.name)
-        ws.cell(row=row, column=1).font = Font(size=24)
+        ws.cell(row=row, column=1).font = Font(size=28)
+        # for i in range(3):
+        #     for j in range(3):
+        #         ws.cell(row=row+i, column=j+1).border = self.border_all_thick
         # 大会記録
         if GR:
             self.write_cell(ws.cell(row=row+1, column=4), '大会記録')
-            self.write_cell(ws.cell(row=row+1, column=5), GR.mark) #記録
-            ws.merge_cells(start_row=row+1,start_column=6,end_row=row+2,end_column=11)
+            self.write_cell(ws.cell(row=row+1, column=5), format_mark(GR.mark, event)) #記録
+            ws.merge_cells(start_row=row+1,start_column=6,end_row=row+1,end_column=11)
             self.write_cell(ws.cell(row=row+1, column=6), self.format_name(GR)) #氏名
-            ws.merge_cells(start_row=row+1,start_column=12,end_row=row+2,end_column=16)
+            ws.merge_cells(start_row=row+1,start_column=12,end_row=row+1,end_column=16)
             self.write_cell(ws.cell(row=row+1, column=12), GR.club)#所属
-            ws.merge_cells(start_row=row+1,start_column=17,end_row=row+2,end_column=19)
+            ws.merge_cells(start_row=row+1,start_column=17,end_row=row+1,end_column=19)
             self.write_cell(ws.cell(row=row+1, column=17), GR.year) #年            
         return row+3
 
@@ -215,11 +234,14 @@ class ProgramMaker:
         ws.merge_cells(start_row=row,start_column=1,end_row=row+2,end_column=3)
         self.write_cell(ws.cell(row=row, column=1), event.name)
         ws.cell(row=row, column=1).font = Font(size=24)
+        # for i in range(3):
+        #     for j in range(3):
+        #         ws.cell(row=row+i, column=j+1).border = self.border_all_thick        
         # 大会記録
         if GR:
             self.write_cell(ws.cell(row=row+1, column=4), '大会記録')
-            self.write_cell(ws.cell(row=row+1, column=5), GR.mark) #記録
-            ws.merge_cells(start_row=row+1,start_column=6,end_row=row+2,end_column=7)
+            self.write_cell(ws.cell(row=row+1, column=5), format_mark(GR.mark,event)) #記録
+            ws.merge_cells(start_row=row+1,start_column=6,end_row=row+1,end_column=7)
             self.write_cell(ws.cell(row=row+1, column=6), self.format_name(GR)) #氏名
             self.write_cell(ws.cell(row=row+1, column=8), GR.club)#所属
             self.write_cell(ws.cell(row=row+1, column=9), GR.year) #年                 
@@ -246,35 +268,30 @@ class ProgramMaker:
     """
     Write Head
     """
-    def write_head_Track(self, ws, row, group=True, wind=True):
+    def write_head_Track(self, ws, row, col, group=True, wind=True):
         # 1行目
-        if group:
-            self.write_cell(ws.cell(row=row, column=1), str(group)+u"組")
+        if group and not group == -123:
+            self.write_cell(ws.cell(row=row, column=col+1), str(group)+u"組", border=self.border_all)
         if wind:
-            ws.merge_cells(start_row=row,start_column=9,end_row=row,end_column=11)
-            self.write_cell(ws.cell(row=row, column=9), u"(風速＋･－　　　m/sec)") # Merged
-        if group or  wind: # どちらかを書き込む場合は
+            self.write_cell(ws.cell(row=row, column=col+5), u"(＋・ー", al=self.al_left) # Merged
+            self.write_cell(ws.cell(row=row, column=col+6), u"m/s)", al=self.al_right) # Merged
+        if group or wind: # どちらかを書き込む場合は
             row += 1
         
         # 2行目
-        self.write_cell(ws.cell(row=row, column=1), u"ﾚｰﾝ")
-        self.write_cell(ws.cell(row=row, column=2), u"No.")
-        ws.merge_cells(self.cell_posi(row, "C")+":"+self.cell_posi(row,"D"))
-        self.write_cell(ws.cell(row=row, column=3), u"氏名") # Merged
-        self.write_cell(ws.cell(row=row, column=5), u"学年")
-        self.write_cell(ws.cell(row=row, column=6), u"所属")
-        self.write_cell(ws.cell(row=row, column=7), u"陸協")
-        self.write_cell(ws.cell(row=row, column=8), u"参考記録")
-        self.write_cell(ws.cell(row=row, column=9), u"順位")
-        ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row,"K"))
-        self.write_cell(ws.cell(row=row, column=10), u"記録")
+        self.write_cell(ws.cell(row=row, column=col+1), u"ﾚｰﾝ", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+2), u"No.", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+3), u"氏名", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+4), u"所属/陸協", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+5), u"参考記録", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+6), u"順位/記録", al=self.al_left)
         # 次の空白行の行番号を返す
         return row+1
 
 
     def write_head_Field(self, ws, row, group=None):
         # 1行目
-        if group:
+        if group and not group == -123:
             self.write_cell(ws.cell(row=row, column=1), str(group)+u"組")
             row += 1
             
@@ -352,27 +369,27 @@ class ProgramMaker:
     """
     Write Row
     """
-    def write_row_Track(self, ws, row, entry, lane):
+    def write_row_Track(self, ws, row, col, entry, lane):
         if entry.entry_status == 'DNS' or entry.check:
-            self.write_cell(ws.cell(row=row, column=1), lane, font=self.font_red)
+            self.write_cell(ws.cell(row=row, column=col+1), lane, font=self.font_red, al=self.al_left)
         else:
-            self.write_cell(ws.cell(row=row, column=1), lane)
-        self.write_cell(ws.cell(row=row, column=2), entry.bib)
-        self.write_cell(ws.cell(row=row, column=3), self.format_name(entry))
-        self.write_cell(ws.cell(row=row, column=4), self.format_kana(entry))
-        self.write_cell(ws.cell(row=row, column=5), entry.grade)
-        self.write_cell(ws.cell(row=row, column=6), entry.club)
-        self.write_cell(ws.cell(row=row, column=7), entry.jaaf_branch)
-        self.write_cell(ws.cell(row=row, column=8), format_mark(entry.personal_best, entry.event_status.event))
+            self.write_cell(ws.cell(row=row, column=col+1), lane, al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+2), entry.bib, al=self.al_left)
+        # 名前
+        name_str = str(entry.name_family)+"\u3000"+str(entry.name_first)
+        if not len(entry.grade) == 0: # 学年記入あり
+            name_str += "("+str(entry.grade)+")"
+        self.write_cell(ws.cell(row=row, column=col+3), name_str, al=self.al_left)
+        self.write_cell(ws.cell(row=row+1, column=col+3), self.format_kana(entry), al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+4), entry.club, al=self.al_left)
+        self.write_cell(ws.cell(row=row+1, column=col+4), entry.jaaf_branch, al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+5), format_mark(entry.personal_best, entry.event_status.event), al=self.al_left)
         # 記録欄
-        self.write_cell(ws.cell(row=row, column=9), "(   )")
+        self.write_cell(ws.cell(row=row, column=col+6), "(  )", al=self.al_left)
         if entry.entry_status == 'DNS':
-            ws.merge_cells(start_row=row,start_column=10,end_row=row,end_column=11)
-            self.write_cell(ws.cell(row=row, column=10), "DNS", font=self.font_red)
-        ws.cell(row=row, column=9).border = self.border_bottom
-        ws.cell(row=row, column=10).border = self.border_bottom
-        ws.cell(row=row, column=11).border = self.border_bottom
-        return row+1
+            self.write_cell(ws.cell(row=row+1, column=col+6), "DNS", font=self.font_red)
+        ws.cell(row=row+1, column=col+6).border = self.border_bottom
+        return row+2
         
 
 
@@ -479,15 +496,32 @@ class ProgramMaker:
         # - ws: worksheet
         # - row: 書き込み開始行番号
         # - entries: QuerySet of Entry Objects        
-
+        
+        # 右カラムか左カラムの決定
+        try:
+            if (group%2) == 0:      # 偶数組みは右カラムに
+                col = 7
+                row = self.row_prev_group_top
+            else:
+                col = 0
+        except TypeError:
+            col = 0
+            
         # 同じページに全ての組みが書き込めるか確認
         current_page = self.get_current_page(row)
-        if current_page["row_left"] < 10:
+        if current_page["row_left"] < 18:
             # 8レーン全て書き込み不可の場合、改ページ
             row = self.new_page(row)
+            col = 0
+        elif current_page["row"] == 1:
+            # ページの1行目が開いてる場合は詰める
+            row = row - 1            
+        # 書き込む行を保存
+        self.row_prev_group_top = row
             
+        
         # Header
-        row = self.write_head_Track(ws, row, group)
+        row = self.write_head_Track(ws, row, col, group, wind=entries[0].event_status.event.wind)
         # エントリーの書き込み
         c = 0
         for i in [0,1,2,3,4,5,6,7]:
@@ -496,29 +530,52 @@ class ProgramMaker:
                 c += 1
             except Entry.DoesNotExist:
                 entry = self.entry_Null
-            row = self.write_row_Track(ws, row, entry, i+1)
+            row = self.write_row_Track(ws, row, col, entry, i+1)
         # Finish
         print("> Write_group_lane8: write ", str(c),"/", len(entries), " entries")
-        return row       
+        if row > self.row_prev_group_last:
+            self.row_prev_group_last = row
+            return row
+        else:
+            self.row_prev_group_last = row
+            return self.row_prev_group_last
+
 
             
     # 長距離&補欠用
-    def write_group_laneN(self, ws, row,  entries, group=False, wind=True):
+    def write_group_laneN(self, ws, row, entries, group=False, wind=True, col_right=False):
         # Params
         # - ws: worksheet
         # - row: 書き込み開始行番号
         # - entries: QuerySet of Entry Objects
 
+        # 右カラムか左カラムの決定
+        try:
+            if col_right or (group%2) == 0:      # 偶数組と補欠は右カラムに
+                col = 7
+                row = self.row_prev_group_top
+            else:
+                col = 0
+        except TypeError:
+            col = 0
+            
         # 同じページに全ての組みが書き込めるか確認
         current_page = self.get_current_page(row)
         max_lane = entries.aggregate(Max('order_lane')) # 最大のレーン
-        row_need = 2 + max_lane["order_lane__max"]                         # 書き込みに必要な行数の見積もり
+        row_need = 2 + max_lane["order_lane__max"]*2    # 書き込みに必要な行数の見積もり
         if current_page["row_left"] < row_need:
             # 8レーン全て書き込み不可の場合、改ページ
             row = self.new_page(row)
-            
+            col = 0
+        elif current_page["row"] == 2:
+            # ページの1行目が開いてる場合は詰める
+            row = row - 1
+        # 書き込む行を保存
+        self.row_prev_group_top = row
+
+        
         # Header
-        row = self.write_head_Track(ws, row, group=group, wind=wind)
+        row = self.write_head_Track(ws, row, col, group=group, wind=entries[0].event_status.event.wind)
         # エントリーの書き込み
         c = 0
         for i in np.arange(0, max_lane["order_lane__max"], 1):
@@ -527,11 +584,15 @@ class ProgramMaker:
                 c += 1
             except Entry.DoesNotExist:
                 entry = self.entry_Null
-            row = self.write_row_Track(ws, row, entry, i+1)
+            row = self.write_row_Track(ws, row, col, entry, i+1)
         # Finish
         print("> Write_group_laneN: write ", str(c),"/", len(entries), " entries")
-        return row
-
+        if row > self.row_prev_group_last:
+            row_return = row
+        else:
+            row_return =  self.row_prev_group_last
+        self.row_prev_group_last = row
+        return row_return
 
     def write_group_HJPV(self, ws, row,  entries, group=False):
         # このページに全て書き込み可能か判定
@@ -617,20 +678,21 @@ class ProgramMaker:
         groups = Entries.values_list('group', flat=True).order_by('group').distinct()
         for group in groups:
             # 組数が負の場合
-            if group == -123 :
-                # 補欠は書き出し
-                row = self.write_group_laneN(ws, row, Entries, group=None, wind=False)
-                row += 2
+            if group < 0 and not group == -123 : # continue # 番組編成　未完了は書き出さない
                 continue
-            elif group < 0:
-                continue # 番組編成　未完了は書き出さない
             
             entries_g = Entries.filter(group=group).order_by('order_lane')
             # エントリーを書き出し
             if event.program_type == 'Track8':
-                row = self.write_group_lane8(ws, row, entries_g, group=group, wind=event.wind)
+                if group == -123: # 補欠は書き出し
+                    row = self.write_group_laneN(ws, row, entries_g, group=group, wind=event.wind, col_right=True)
+                else:
+                    row = self.write_group_lane8(ws, row, entries_g, group=group, wind=event.wind)
             elif event.program_type == 'TrackN':
-                row = self.write_group_laneN(ws, row, entries_g, group=group)
+                if group == -123: # 補欠は書き出し
+                    row = self.write_group_laneN(ws, row, entries_g, group=group, col_right=True)
+                else:
+                    row = self.write_group_laneN(ws, row, entries_g, group=group)
             elif event.program_type == 'HJPV':
                 row = self.write_group_HJPV(ws, row, entries_g, group=group)
             elif event.program_type == 'LJTJ':
@@ -638,7 +700,7 @@ class ProgramMaker:
             elif event.program_type == 'Throw':
                 row = self.write_group_Throw(ws, row, entries_g, group=group)
             # 1組書いた後は2行開ける
-            row += 2
+            row += 1
         return row
 
     
@@ -646,84 +708,114 @@ class ProgramMaker:
     Sheet Styling
     """
     # Track
-    def style_Track(self, ws, row):
+    def style_Track(self, ws, row, event=False):
         # Params
         # - ws: worksheet
         # - row: The last row number of the page you edit (type=int)
         # - col:  The last col number of the page you edit (type=int)
     
-        #　行の高さの指定
-        for  i in range(0,row):
-            ws.row_dimensions[i].height = 13
         #  列の幅の指定
-        col_width = [("A", 4.0), ("B", 7.0), ("C", 11.0), ("D", 13.0), ("E", 7.0),  ("F", 11.0),("G", 7.0), ("H", 8.0), ("I", 5.0), ("J", 9.0), ("K", 9.0)]
+        col_width = [("A", 3.0), ("B", 5.0), ("C", 11.0), ("D", 8.5), ("E", 6.0), ("F", 6.5),
+                     ("G", 2.0),
+                     ("H", 3.0), ("I", 5.0), ("J", 11.0), ("K", 8.5), ("L", 6.0), ("M", 6.5)]
         for t in col_width:
             ws.column_dimensions[t[0]].width = t[1]
+
+        if event:
+            ws.oddHeader.center.text = sex_to_ja(event.sex)+str(event.name)+"  &[Page] / &N"
+            ws.oddHeader.center.size = 12
+            ws.oddHeader.center.font = "ＭＳ ゴシック"
+            ws.oddHeader.center.color = "000000"            
+
         return row
 
         
-    def style_HJPV(self, ws, row):
+    def style_HJPV(self, ws, row, event=False):
         # Params
         # - ws: worksheet
         # - row: The last row number of the page you edit (type=int)
         # - col:  The last col number of the page you edit (type=int)
-    
-        #　行の高さの指定
-        for  i in range(0,row):
-            ws.row_dimensions[i].height = 13
+        
         #  列の幅の指定
         # [E-AF] = 1pt
-        col_width = [("A", 3.0), ("B", 6.0), ("C", 11.0), ("D", 11.0), ("E", 5.0),  ("AG", 4.0),("AH", 3.0)]
-        col_width_2 = 1.7
+        col_width = [("A", 2.5), ("B", 6.0), ("C", 10.5), ("D", 10.5), ("E", 4.5),  ("AG", 3.0),("AH", 3.0)]
+        col_width_2 = 1.5
         for t in col_width:
             ws.column_dimensions[t[0]].width = t[1]
         for t in [chr(i) for i in range(65+5,65+26)]: # F - Z
             ws.column_dimensions[t].width = col_width_2
         for t in ["A"+chr(i) for i in range(65,65+6)]: #  AA- AF
             ws.column_dimensions[t].width = col_width_2
+
+        if event:
+            ws.oddHeader.center.text = sex_to_ja(event.sex)+str(event.name)+"  &[Page] / &N"
+            ws.oddHeader.center.size = 12
+            ws.oddHeader.center.font = "ＭＳ ゴシック"
+            ws.oddHeader.center.color = "000000"
+            
         return row
     
             
-    def style_LJTJThrow(self, ws, row):
+    def style_LJTJThrow(self, ws, row, event=False):
         # Params
         # - ws: worksheet
         # - row: The last row number of the page you edit (type=int)
         # - col:  The last col number of the page you edit (type=int)
         
-        #　行の高さの指定
-        for  i in range(0,row):
-            ws.row_dimensions[i].height = 13
         #  列の幅の指定
         # [E-AF] = 1pt
-        col_width = [("A", 3.0), ("B", 6.0), ("C", 10.0), ("D", 10.5), ("E", 5.0),  ("N", 4.0)]
-        col_width_2 = 6.5
+        col_width = [("A", 2.5), ("B", 6.0), ("C", 10.5), ("D", 10.0), ("E", 4.5),  ("N", 3.0)]
+        col_width_2 = 5.5
         for t in col_width:
             ws.column_dimensions[t[0]].width = t[1]
         for t in [chr(i) for i in range(65+5,65+13)]: # F - M
             ws.column_dimensions[t].width = col_width_2
+
+
+        # 印刷ヘッダーの編集
+        if event:
+            ws.oddHeader.center.text = sex_to_ja(event.sex)+str(event.name)+"  &[Page] / &N"
+            ws.oddHeader.center.size = 12
+            ws.oddHeader.center.font = "ＭＳ ゴシック"
+            ws.oddHeader.center.color = "000000"
+
         return row
 
 
-    def style_sheet(self, ws, row, event):
+    def style_sheet(self, ws, row, event, mode=None):        
+        #　行の高さの指定
+        for  i in range(0,row):
+            ws.row_dimensions[i].height = 13
+
+        # 複数種目書き出しの場合
+        if mode == 'many':
+            event_cp = None
+        else:
+            event_cp = event
+            
         # 種目ごとに分岐
         if event.program_type == 'Track8' or event.program_type == 'TrackN':
-            return self.style_Track(ws, row)
+            return self.style_Track(ws, row, event=event_cp)
         elif event.program_type == 'HJPV':
-            return self.style_HJPV(ws, row)
+            return self.style_HJPV(ws, row, event=event_cp)
         elif event.program_type == 'LJTJ' or event.program_type == 'Throw':
-            return self.style_LJTJThrow(ws, row)
+            return self.style_LJTJThrow(ws, row, event=event_cp)
 
 
         
     """
     Write Event
     """
-    def write_class(self, ws, row, class_name):
+    def write_class(self, ws, row, class_name, col=0):
         # 部門名を書き出し
-        ws.merge_cells(start_row=row,start_column=1,end_row=row,end_column=3)
-        self.write_cell(ws.cell(row=row, column=1), "< "+class_name+" >")
-        ws.cell(row=row, column=1).alignment = self.al_left
-        return row+1
+        ws.merge_cells(start_row=row,start_column=col+1,end_row=row,end_column=col+3)
+        self.write_cell(ws.cell(row=row, column=col+1), "< "+class_name+" >")
+        ws.cell(row=row, column=col+1).alignment = self.al_left
+        if col == 0:
+            return row+1
+        else:
+            row_return = self.row_prev_group_last+1
+            return row_return
         
     def write_event(self, ws, row, event, GR=None,VS=False,Sub=False,OP=False):
         # Params
@@ -746,8 +838,12 @@ class ProgramMaker:
             row = self.write_groups(ws, row, event, VS)            
         ## 補欠
         if Sub:
-            print("sub", Sub)
-            row = self.write_class(ws, row, "補欠")
+            if event.program_type == 'Track8' or event.program_type == 'TrackN':
+                col = 7
+                row = self.row_prev_group_top-1
+            else:
+                col = 0
+            row = self.write_class(ws, row, "補欠", col=col)
             row = self.write_groups(ws, row, event, Sub)
         ## OP
         if OP:
@@ -870,7 +966,7 @@ class ProgramMaker:
         for event in events:
             row = self.cardinal_write_by_event(ws, row, comp, event)
         # シートのスタイリング
-        row = self.style_sheet(ws, row, event)
+        row = self.style_sheet(ws, row, event, mode='many')
 
         # シートの書き出し完了
         print("Success: write Excel Sheet of ", sheet_name)
@@ -961,10 +1057,11 @@ class ProgramMaker:
         return wb
 
 
-    def cardinal_create_workbook_track(self, comp):
+    def cardinal_create_workbook_track(self, comp, mode='single'):
         # Params
         # - comp: Comp obkject
         # - sex: 性別
+        # - mode: 'single'シート一枚に書き込む or 'multiple': 複数シートに書き込む
         
         # Create new Workbook
         wb = px.Workbook()
@@ -980,8 +1077,17 @@ class ProgramMaker:
                 sex='M',
             ).order_by("start_list_priority", "name")
             ## シートの作成
-            sheet_name = u"男トラック"
-            self.cardinal_create_sheet_by_events(wb, comp, events, sheet_name=sheet_name)
+            if mode == 'single':
+                sheet_name = u"男トラック"
+                self.cardinal_create_sheet_by_events(wb, comp, events, sheet_name=sheet_name)
+            else:
+                for event in events:
+                    # 初期化
+                    self.row_prev_group_top = 1
+                    self.row_prev_group_last = 1
+                    # 書き出し
+                    sheet_name = event.sex+event.name
+                    self.cardinal_create_sheet_by_event(wb, comp, event, sheet_name=sheet_name)
         except Entry.DoesNotExist as e:
             print(e, "@cardinal_create_workbook_field")
 
@@ -993,8 +1099,17 @@ class ProgramMaker:
                 sex='W',
             ).order_by("start_list_priority", "name")
             ## シートの作成
-            sheet_name = u"女トラック"
-            self.cardinal_create_sheet_by_events(wb, comp, events, sheet_name=sheet_name)
+            if mode == 'single':
+                sheet_name = u"女トラック"
+                self.cardinal_create_sheet_by_events(wb, comp, events, sheet_name=sheet_name)
+            else:
+                for event in events:
+                    # 初期化
+                    self.row_prev_group_top = 1
+                    self.row_prev_group_last = 1
+                    # 書き出し
+                    sheet_name = event.sex+event.name
+                    self.cardinal_create_sheet_by_event(wb, comp, event, sheet_name=sheet_name)
         except Entry.DoesNotExist as e:
             print(e, "@cardinal_create_workbook_field")            
             

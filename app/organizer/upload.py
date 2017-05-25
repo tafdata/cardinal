@@ -24,7 +24,7 @@ class EntryHandler:
         
     def handle_csv(self, f):
         print("handle_csv called")
-        df = pd.read_csv(f)
+        df = pd.read_csv(f, dtype="object")
         df = df.fillna(False)
         self.check_csv_format(df)
         for i in range(len(df)):

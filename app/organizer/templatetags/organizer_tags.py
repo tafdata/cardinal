@@ -23,13 +23,22 @@ def format_mark(value, event):
         if not num1 == 0:
             if event.separator_1: out+=str(num1)+event.separator_1
             else: out += str(num1)
-        if event.separator_2: out+=str(num2)+event.separator_2
+        if event.separator_2:
+            if not num1 == 0 and num2 < 10:
+                out+="0"+str(num2)+event.separator_2
+            else: out+=str(num2)+event.separator_2
         else: out += str(num2)
         if event.separator_3:
-            if not num3 == 0: out+=str(num3)+event.separator_3
+            if not num3 == 0:
+                if num3 >= 10: out+=str(num3)+event.separator_3
+                else: out+='0'+str(num3)+event.separator_3
             else: out+= "00"+event.separator_3
         else:
-            if not num3 == 0: out+=str(num3)
+            if not num3 == 0:
+                if num3 >= 10: out+=str(num3)
+                else:
+                    print(num3)
+                    out+='0'+str(num3)
             else: out+= "00"
         return out
     # 6桁で入力されていない場合
@@ -45,11 +54,15 @@ def table_event_status(comp, user):
     # Param
     # - comp: 競技会
 
-    event_statuss = EventStatus.objects.filter(comp=comp).order_by('start_list_priority')
+    event_statuss = EventStatus.objects.filter(comp=comp).order_by('start_list_priority', 'event__sex', '-section')
     event_s_list= []
     for event_status in event_statuss:
         entries = Entry.objects.filter(event_status=event_status)
-        event_s_list.append({'event_status': event_status, 'count': len(entries)})        
+        count_total = len(entries)
+        entries_DNS = entries.filter(entry_status='DNS')
+        count_DNS = len(entries_DNS)
+        groups = entries.filter(group__gt=0).values_list('group', flat=True).order_by('group').distinct()
+        event_s_list.append({'event_status': event_status, 'count': (count_total-count_DNS), 'count_total': count_total, 'count_DNS': count_DNS, 'count_group': len(groups)})        
     return {'comp':comp, 'event_list': event_s_list, 'user':user}
     
     
@@ -116,10 +129,10 @@ def start_list_web(comp, event_status, user):
     for group in group_nos:
         group["entries"] = Entry.objects.filter(event_status=event_status, group=group["group"]).order_by('order_lane', 'personal_best')    
         # 仕分け
-        if group["group"] == -1: # 番組編成　未処理
-            groups_null.append(group)
-        elif group["group"] == -123: # 補欠
+        if group["group"] == -123: # 補欠
             groups_sub.append(group)
+        elif group["group"] < 0: # 番組編成　未処理
+            groups_null.append(group)
         else: # 番組編成　済み
             groups_done.append(group)
 

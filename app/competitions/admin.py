@@ -18,7 +18,7 @@ admin.site.register(Comp,CompAdmin)
 Event
 """
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('name', 'sex', 'order', 'short', '_separator', 'created', 'modified',)
+    list_display = ('start_list_priority', 'name', 'sex', 'order', 'short', '_separator', 'created', 'modified',)
     list_display_links = ('name',)
 
     def _separator(self, row):

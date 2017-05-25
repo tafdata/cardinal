@@ -20,6 +20,7 @@ from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditFo
 
 from organizer.upload import EntryHandler
 from organizer.myprogram import ProgramMaker
+from organizer.jyoriku import JyorikuTool
 
 
 # ================================ #
@@ -219,7 +220,10 @@ def SL_excel(request, sl_type=None, pk=None):
     if sl_type == "event":
         event = get_object_or_404(Event, pk=pk)
         wb = PM.cardinal_create_workbook_by_event(comp, event)
-        filename = str(event.sex)+str(event.short)+".xlsx"
+        if event.short:
+            filename = str(event.sex)+str(event.short)+".xlsx"
+        else:
+            filename = str(event.sex)+str(event.name)+".xlsx"
         print(filename)
     elif sl_type == "event_status":
         event_status = get_object_or_404(EventStatus, pk=pk)
@@ -227,8 +231,11 @@ def SL_excel(request, sl_type=None, pk=None):
         wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
         filename = str(event_status.section+event.sex+event.name+".xlsx")
     elif sl_type == "track":
-        wb = PM.cardinal_create_workbook_track(comp)
+        wb = PM.cardinal_create_workbook_track(comp=comp, mode='single')
         filename = "Track.xlsx"
+    elif sl_type == "track2":
+        wb = PM.cardinal_create_workbook_track(comp, mode='multiple')
+        filename = "Track.xlsx"        
     elif sl_type == "field":
         wb = PM.cardinal_create_workbook_field(comp)
         filename = "Field.xlsx"
@@ -243,3 +250,27 @@ def SL_excel(request, sl_type=None, pk=None):
     response["Content-Disposition"] = "filename="+filename
     return response
 
+
+"""
+SL スタートリスト 上陸用
+"""
+def SL_jyoriku(request):
+    comp = get_comp(request)
+    Jyoriku = JyorikuTool(comp)
+    df = Jyoriku.start_list_jyoriku()
+    
+    # Response             
+    response = HttpResponse(df.to_csv(header=False,index=False, encoding='utf-8'), content_type="text/csv")
+    response["Content-Disposition"] = "filename='SL_cardinal_jyoriku.csv"
+    return response    
+
+
+def SL_cardinal(request):
+    comp = get_comp(request)
+    Jyoriku = JyorikuTool(comp)
+    df = Jyoriku.start_list_cardinal()
+    
+    # Response             
+    response = HttpResponse(df.to_csv(index=False, encoding='utf-8'), content_type="text/csv")
+    response["Content-Disposition"] = "filename='cardinal_SL.csv"
+    return response    

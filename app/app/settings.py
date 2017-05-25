@@ -135,3 +135,6 @@ STATICFILES_DIRS = (
 
 # Form Setting
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
+
+# Internet
+ALLOWED_HOSTS = ['192.168.11.3', 'localhost', '127.0.0.1']

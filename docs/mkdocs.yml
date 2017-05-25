@@ -4,6 +4,6 @@ pages:
   - About: about.md
   - SetUp: setup.md
   - '運営マニュアル':
-      - '運営責任者': ./manual/organizer.md
+      - '運営スタッフ': ./manual/organizer.md
       - '競技者係': ./manual/reception.md
 theme: readthedocs    

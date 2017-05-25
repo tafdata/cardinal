@@ -37,10 +37,6 @@
 														<a href="http://localhost:7000/admin/competitions/event/add" class="card-link" target="_blank">追加</a>
 
 												</li>
-												<li class="list-group-item">
-														<span class="mr-3 card-text">実施種目</span>
-														<!-- <a href="" class="card-link">追加(CSV経由)</a> -->
-												</li>
 										</ul>
 								</div>
 						</div>
@@ -70,14 +66,29 @@
 								</div>
 								<div class="card mb-3">
 										<div class="card-block">
-												<h4 class="card-title">上陸連携</h4>
-												{# <a href="{% url 'organizer:sl_web' event_status_id=event_status.id %}" class="card-link">個別登録</a> #}
+												<h4 class="card-title">SLダウンロード</h4>
+
 												<div class="row">
 														<div class="col-md-4">
-																<span class="mr-3 card-text">上陸</span>
+																<span class="mr-3 card-text">Excel</span>
 														</div>
 														<div class="col-md-8">
-																<a href="" class="card-link">CSV出力</a>
+																<div class="row"><div class="col-12">
+																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='track' %}" class="card-link">トラック(SingleSheet)</a>
+																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='track2' %}" class="card-link">トラック</a>
+																</div></div>
+																<div class="row"><div class="col-12">
+																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='field' %}" class="card-link">フィールド</a>
+																</div></div>
+														</div>
+												</div>
+												<div class="row">
+														<div class="col-md-4">
+																<span class="mr-3 card-text">上陸&Cardinal</span>
+														</div>
+														<div class="col-md-8">
+																<a href="{% url 'organizer:organizer_SL_jyoriku' %}" class="card-link">上陸形式CSV</a>
+																<a href="{% url 'organizer:organizer_SL_cardinal' %}" class="card-link">Cardinal形式CSV</a>
 														</div>
 												</div>
 										</div>
@@ -112,6 +123,7 @@
 																<div>
 																		<h5>プログラム</h5>
 																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='track' %}" class="card-link">トラック</a>
+																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='track2' %}" class="card-link">トラック(種目でシートを分ける)</a>
 																		<a href="{% url 'organizer:organizer_SL_excel' sl_type='field' %}" class="card-link">フィールド</a>
 																</div>
 														</div>
