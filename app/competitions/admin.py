@@ -1,5 +1,5 @@
 from django.contrib import admin
-from competitions.models import Comp, Event, EventStatus, GR
+from competitions.models import Comp, Event, EventStatus, GR, Result
 
 
 # Register your models here.
@@ -51,3 +51,12 @@ class GRAdmin(admin.ModelAdmin):
     list_display = ('id', 'comp', 'event', 'mark',  'name_family', 'name_first', 'club', 'year', 'modified')
     list_display_links = ('id', 'comp', 'event',)
 admin.site.register(GR, GRAdmin)
+
+
+"""
+Result
+"""
+class ResultAdmin(admin.ModelAdmin):
+    list_display = ('id', 'comp', 'event', 'sex', 'game_class', 'game_round', 'group', 'position', 'bib', 'name', 'club', 'mark', 'entry')
+    list_display_links = ('game_class', 'game_round', 'group', 'position', 'name', 'club', 'mark')
+admin.site.register(Result, ResultAdmin)

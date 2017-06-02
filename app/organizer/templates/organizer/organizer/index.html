@@ -91,6 +91,20 @@
 																<a href="{% url 'organizer:organizer_SL_cardinal' %}" class="card-link">Cardinal形式CSV</a>
 														</div>
 												</div>
+												<div class="row">
+														<div class="col-md-4">
+																<span class="mr-3 card-text">Result</span>
+														</div>
+														<div class="col-md-8">
+																<div class="row"><div class="col-12">
+																		<a href="{% url 'organizer:organizer_result_excel' sl_type='track' %}" class="card-link">トラック(SingleSheet)</a>
+																		<a href="{% url 'organizer:organizer_result_excel' sl_type='track2' %}" class="card-link">トラック</a>
+																</div></div>
+																<div class="row"><div class="col-12">
+																		<a href="{% url 'organizer:organizer_result_excel' sl_type='field' %}" class="card-link">フィールド</a>
+																</div></div>
+														</div>
+												</div>
 										</div>
 								</div>
 						</div>

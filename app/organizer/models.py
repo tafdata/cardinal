@@ -8,7 +8,7 @@ ENTRY_STATUS_CHOICES = (
     ('Entry', 'Entry'),
     ('Entry_2', 'Entry_2'),     # 当日エントリーなど
     ('stand_by', 'StandBy'),
-    ('Finish', 'Finish'),
+    ('Result', 'Result'),
     ('DNS', 'DNS'),
     ('DNF', 'DNF'),
     ('DQ', 'DQ'),

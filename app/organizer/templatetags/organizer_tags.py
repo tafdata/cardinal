@@ -18,7 +18,9 @@ from organizer.forms import EntryForm, EntryStatusEditForm
 def format_mark(value, event):
     out = ""
     #正しく6桁で入力されている場合
-    if len(value) == 6:
+    if value == '000000':
+        return "-"
+    elif len(value) == 6:
         num1, num2, num3 = int(value[0:2]), int(value[2:4]), int(value[4:])
         if not num1 == 0:
             if event.separator_1: out+=str(num1)+event.separator_1

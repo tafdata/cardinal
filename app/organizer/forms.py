@@ -208,3 +208,13 @@ class DNSForm(forms.ModelForm):
             'id' : forms.HiddenInput(),
             'entry_status' : forms.HiddenInput(),
         }
+
+
+
+"""
+ResultUpload 大会結果のアップロード
+"""
+class ResultUploadForm(forms.Form):
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={'class': 'form-control-file', 'accept': 'text/csv'})
+    )   

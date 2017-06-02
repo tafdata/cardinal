@@ -13,7 +13,7 @@ from django.db.models import Max
 from django.core.exceptions import ObjectDoesNotExist
 
 # Models
-from competitions.models import Comp, Event, EventStatus, GR as GRecord
+from competitions.models import Comp, Event, EventStatus, GR as GRecord, Result
 from organizer.models import Entry
 from organizer.templatetags.organizer_tags import format_mark
 from organizer.templatetags.organizer_filters import zen_to_han, sex_to_ja
@@ -1117,3 +1117,253 @@ class ProgramMaker:
         wb.remove_sheet(ws)
         # 完了
         return wb
+
+
+
+
+
+class ResultProgramMaker(ProgramMaker):
+    """
+    Write Group
+    """
+    def write_group_lane8(self, ws, row,  entries, group=False, wind=True):
+        # Params
+        # - ws: worksheet
+        # - row: 書き込み開始行番号
+        # - entries: QuerySet of Entry Objects        
+        
+        # 右カラムか左カラムの決定
+        try:
+            if (group%2) == 0:      # 偶数組みは右カラムに
+                col = 7
+                row = self.row_prev_group_top
+            else:
+                col = 0
+        except TypeError:
+            col = 0
+            
+        # 同じページに全ての組みが書き込めるか確認
+        current_page = self.get_current_page(row)
+        entry_replaced = entries.values('order_lane').annotate(cnt=Count("*"),).order_by('order_lane')
+        count_replaced = 0
+        for foo in entry_replaced:
+            print(foo)
+            if foo["cnt"] > 1: count_replaced += foo["cnt"]-1
+        if current_page["row_left"] < 18+count_replaced*2:
+            # 8レーン全て書き込み不可の場合、改ページ
+            row = self.new_page(row)
+            col = 0
+        elif current_page["row"] == 1:
+            # ページの1行目が開いてる場合は詰める
+            row = row - 1            
+        # 書き込む行を保存
+        self.row_prev_group_top = row
+            
+        
+        # Header
+        row = self.write_head_Track(ws, row, col, group, wind=entries[0].event_status.event.wind)
+        # エントリーの書き込み
+        c = 0
+        DNS = []
+        for i in [0,1,2,3,4,5,6,7]:
+            try:
+                entry_candidate = entries.filter(order_lane=i+1)
+                if len(entry_candidate) == 1:
+                    entry = entry_candidate[0]
+                elif len(entry_candidate) == 2:
+                    for entry_2 in entry_candidate:
+                        if entry_2.entry_status == 'Result':
+                            entry = entry_2
+                        else:
+                            DNS.append(entry_2)
+                else:
+                    raise ObjectDoesNotExist("No entry or Too many entry")
+                c += 1
+            except ObjectDoesNotExist:
+                entry = self.entry_Null
+            row = self.write_row_Track(ws, row, col, entry, i+1)
+
+        # Write DNS
+        for entry in DNS:
+            row = self.write_row_Track(ws, row, col, entry, "-")
+            c += 1
+            
+        # Finish
+        print("> Write_group_lane8: write ", str(c),"/", len(entries), " entries")
+        if row > self.row_prev_group_last:
+            self.row_prev_group_last = row
+            return row
+        else:
+            # self.row_prev_group_last = row
+            return self.row_prev_group_last
+
+
+
+
+    """
+    Write Row
+    """
+    def write_row_Track(self, ws, row, col, entry, lane):
+        if entry.entry_status == 'DNS' or entry.check:
+            self.write_cell(ws.cell(row=row, column=col+1), lane, font=self.font_red, al=self.al_left)
+        else:
+            self.write_cell(ws.cell(row=row, column=col+1), lane, al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+2), entry.bib, al=self.al_left)
+        # 名前
+        name_str = str(entry.name_family)+"\u3000"+str(entry.name_first)
+        if not len(entry.grade) == 0: # 学年記入あり
+            name_str += "("+str(entry.grade)+")"
+        self.write_cell(ws.cell(row=row, column=col+3), name_str, al=self.al_left)
+        self.write_cell(ws.cell(row=row+1, column=col+3), self.format_kana(entry), al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+4), entry.club, al=self.al_left)
+        self.write_cell(ws.cell(row=row+1, column=col+4), entry.jaaf_branch, al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+5), format_mark(entry.personal_best, entry.event_status.event), al=self.al_left)
+        # 記録欄
+        try:
+            result = Result.objects.get(entry=entry)
+            position = "( "+str(result.position)+" )"
+            mark = format_mark(result.mark, result.event)
+        except ObjectDoesNotExist:
+            position = "(  )"
+            mark = ""        
+        self.write_cell(ws.cell(row=row, column=col+6), position, al=self.al_left)
+        self.write_cell(ws.cell(row=row+1, column=col+6), mark)
+        ws.cell(row=row+1, column=col+6).border = self.border_bottom
+        return row+2
+        
+
+
+    def write_row_Field(self, ws,row, entry, order):
+        # 試技順
+        ws.merge_cells(self.cell_posi(row, "A")+":"+self.cell_posi(row+1,"A"))
+        if entry.entry_status == 'DNS' or entry.check:
+            self.write_cell(ws.cell(row=row, column=1), order, font=self.font_red)
+        else:
+            self.write_cell(ws.cell(row=row, column=1), order)
+        # No, 学年
+        self.write_cell(ws.cell(row=row, column=2), entry.bib)
+        self.write_cell(ws.cell(row=row+1, column=2), entry.grade)
+        # 氏名
+        self.write_cell(ws.cell(row=row, column=3), self.format_name(entry))
+        self.write_cell(ws.cell(row=row+1, column=3), self.format_kana(entry))
+        # 所属, 陸協
+        self.write_cell(ws.cell(row=row, column=4), entry.club)
+        self.write_cell(ws.cell(row=row+1, column=4), entry.jaaf_branch)
+        # 参考記録
+        ws.merge_cells(self.cell_posi(row, "E")+":"+self.cell_posi(row+1,"E"))
+        self.write_cell(ws.cell(row=row, column=5), format_mark(entry.personal_best, entry.event_status.event))
+        return row
+
+    
+            
+    def write_row_HJPV(self, ws, row, entry, order):
+        # Field 共通ヘッダー
+        row = self.write_row_Field(ws, row, entry, order)
+        # 試技
+        for i in np.arange(6,33, 1):
+            ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i)
+        # 記録&順位
+        try:
+            result = Result.objects.get(entry=entry)
+            if result.position > 0: position = str(result.position)
+            else: position = "-"
+            if position == 0: position = "-"
+            mark = format_mark(result.mark, result.event)
+        except ObjectDoesNotExist:
+            position = ""
+            mark = ""
+        ws.merge_cells(self.cell_posi(row, "AG")+":"+self.cell_posi(row+1,"AG"))
+        self.write_cell(ws.cell(row=row, column=33), mark) # 記録
+        ws.merge_cells(self.cell_posi(row, "AH")+":"+self.cell_posi(row+1,"AH"))
+        self.write_cell(ws.cell(row=row, column=34), position) # 順位
+        
+        # Borderの設定
+        for i in range(1,35):
+            ws.cell(row=row, column=i).border = self.border_all
+            ws.cell(row=row+1, column=i).border = self.border_all
+        return row+2
+
+
+    def write_row_LJTJ(self, ws, row, entry, order, trial=6):
+        # Field 共通ヘッダー
+        row = self.write_row_Field(ws, row, entry, order)
+        # 試技&記録
+        try:
+            result = Result.objects.get(entry=entry)
+            if entry.entry_status == 'Result':
+                if result.position > 0: position = str(result.position)
+                else: position = "-"
+                mark = format_mark(result.mark, result.event)
+                if result.wind > 0: wind = "+"+str(result.wind)
+                else: wind = str(result.wind)
+            else:
+                position = result.mark
+                mark = "-"
+                wind = "-"
+            print(result.mark, mark)                
+        except ObjectDoesNotExist:
+            position = "(  )"
+            mark = ""
+            wind = ""
+        if trial == 6: cell_end = 14
+        else: cell_end = 10
+        for i in np.arange(6,cell_end, 1):
+            self.write_cell(ws.cell(row=row, column=i), "m", font=self.font_small)
+            self.write_cell(ws.cell(row=row+1, column=i), "＋･－", font=self.font_small, al=self.al_left)  
+  
+        # 順位
+        if trial == 6:
+        # 記録    
+            self.write_cell(ws.cell(row=row, column=13), mark)
+            self.write_cell(ws.cell(row=row+1, column=13), wind)            
+            ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))
+            self.write_cell(ws.cell(row=row, column=14), position)
+        else:
+            self.write_cell(ws.cell(row=row, column=9), mark)
+            self.write_cell(ws.cell(row=row+1, column=9), wind)  
+            ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
+            self.write_cell(ws.cell(row=row, column=10), position)
+        
+        # Borderの設定
+        for i in range(1,cell_end+1):
+            ws.cell(row=row, column=i).border = self.border_all
+            ws.cell(row=row+1, column=i).border = self.border_all   
+        return row + 2
+
+    
+    def write_row_Throw(self, ws, row, entry, order, trial=6):
+        # Field 共通ヘッダー
+        row = self.write_row_Field(ws, row, entry, order)
+        # 試技&記録
+        try:
+            result = Result.objects.get(entry=entry)
+            if result.position > 0: position = str(result.position)
+            else: position = "-"            
+            mark = format_mark(result.mark, result.event)
+        except ObjectDoesNotExist:
+            position = ""
+            mark = ""
+        if trial == 6: cell_end = 14
+        else: cell_end = 10
+        for i in np.arange(6,cell_end, 1):
+            ws.merge_cells(start_row=row,start_column=i,end_row=row+1,end_column=i)
+            self.write_cell(ws.cell(row=row, column=i), "m", al=self.al_bottom)
+
+        # 順位
+        if trial == 6:
+            ws.merge_cells(start_row=row,start_column=13,end_row=row+1,end_column=13)
+            self.write_cell(ws.cell(row=row, column=13), mark)
+            ws.merge_cells(self.cell_posi(row, "N")+":"+self.cell_posi(row+1,"N"))            
+            self.write_cell(ws.cell(row=row, column=14), position)
+        else:
+            ws.merge_cells(start_row=row,start_column=9,end_row=row+1,end_column=9)
+            self.write_cell(ws.cell(row=row, column=9), mark)
+            ws.merge_cells(self.cell_posi(row, "J")+":"+self.cell_posi(row+1,"J"))
+            self.write_cell(ws.cell(row=row, column=10), position)
+        
+        # Borderの設定
+        for i in range(1,cell_end+1):
+            ws.cell(row=row, column=i).border = self.border_all
+            ws.cell(row=row+1, column=i).border = self.border_all   
+        return row + 2
+        

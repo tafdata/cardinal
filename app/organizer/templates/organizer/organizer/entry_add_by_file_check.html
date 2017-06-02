@@ -84,6 +84,29 @@
 
 						</div>
 				</div>
+				
+				<div class="card mb-3">
+						<div class="card-block">
+								<h4 class="card-title">Errors CSV</h4>
+								<h6 class="card-subtitle mb-2 text-muted">エラー項目のCSV</h6>
+						</div>
+						<div class="card-block">
+								<form>
+										<div class="form-group">
+												<label for="exampleTextarea">通常エラー</label>
+												<textarea class="form-control" id="exampleTextarea" rows="10">{{ CSV.std_error}}</textarea>
+										</div>
+								</form>
+						</div>
+						<div class="card-block">
+								<form>
+										<div class="form-group">
+												<label for="exampleTextarea">DBエラー</label>
+												<textarea class="form-control" id="exampleTextarea" rows="10">{{ CSV.DB_error}}</textarea>
+										</div>
+								</form>								
+						</div>
+				</div>
 				<a href="{% url 'organizer:organizer_top' %}" class="btn btn-secondary">戻る</a>
 		</div>
 </div>

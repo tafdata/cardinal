@@ -3,7 +3,7 @@
 {% load organizer_tags %}
 
 <!-- 実施種目の一覧 -->
-<table class="table table-striped table-sm">
+<table class="table table-striped table-hover table-sm">
 		<thead>
 				<tr>
 						<th>種目</th>
@@ -21,13 +21,19 @@
 		<tbody>
 				{% for event_status in event_list %}
 				<tr>
-						<td style="white-space:nowrap;">{{ event_status.event_status.event.name }}</td>
-						<td style="white-space:nowrap;">{{ event_status.event_status.section|race_section_to_ja }}</td>
-						<td>{{ event_status.event_status.event.sex|sex_to_ja }}</td>
-						<td style="white-space:nowrap;">{{ event_status.event_status.match_round }}</td>
-						<td style="white-space:nowrap;">{{ event_status.count_group }}</td>
 						<td style="white-space:nowrap;">
-								{{ event_status.count }}
+										{{ event_status.event_status.event.name }}
+						</td>
+						<td style="white-space:nowrap;">{{ event_status.event_status.section|race_section_to_ja }}</td>
+						<td {% if event_status.event_status.event.sex == 'W' %}class="text-danger"{% endif %}>{{ event_status.event_status.event.sex|sex_to_ja }}</td>
+						<td style="white-space:nowrap;">
+								<a href="{% url 'organizer:organizer_SL_web' event_status_id=event_status.event_status.id %}" class="card-link">
+										{{ event_status.event_status.match_round }}
+								</a>
+						</td>
+						<td style="white-space:nowrap;">{{ event_status.count_group }}<small>組</small></td>
+						<td style="white-space:nowrap;">
+								{{ event_status.count }}<small>人</small>
 								<small class="text-muted">({{ event_status.count_total }} - {{ event_status.count_DNS }})</small>
 						</td>
 						<td style="white-space:nowrap;">{{ event_status.event_status.status }}</td>

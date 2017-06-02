@@ -7,7 +7,7 @@
 <div class="row mb-5">
 		<div class="col-12">
 		<h3>{{ group.group }}組</h3>
-		<table class="table table-striped table-sm">
+		<table class="table table-striped table-hover table-sm">
 				<thead>
 						<tr>
 								<th style="width:5em;">レーン</th>
@@ -34,8 +34,8 @@
 								<td>{{ entry.club }}</td>
 								<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
 								<td>
-										{% if entry.entry_status == 'Entry' %}
-										Entry
+										{% if entry.entry_status == 'Entry' or entry.entry_status == 'Result' %}
+										{{ entry.entry_status }}
 										{% elif entry.entry_status == 'Entry_2' %}
 										<span class="badge badge-info">当日エントリー</span>
 										{% else %}
@@ -66,7 +66,7 @@
 <div class="row mb-5">
 		<div class="col-12">
 		<h3 class="text-info">補欠</h3>
-		<table class="table table-striped table-sm">
+		<table class="table table-striped table-hover table-sm">
 				<thead>
 						<tr>
 								<th style="width:5em;">レーン</th>
@@ -93,8 +93,8 @@
 								<td>{{ entry.club }}</td>
 								<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
 								<td>
-										{% if entry.entry_status == 'Entry' %}
-										Entry
+										{% if entry.entry_status == 'Entry' or entry.entry_status == 'Result' %}
+										{{ entry.entry_status }}
 										{% elif entry.entry_status == 'Entry_2' %}
 										<span class="badge badge-info">当日エントリー</span>
 										{% else %}
@@ -125,7 +125,7 @@
 <div class="row mb-5">
 		<div class="col-12">
 		<h3 class="text-danger">番組編成 未処理({{ group.group }})</h3>
-		<table class="table table-striped table-sm">
+		<table class="table table-striped table-hover table-sm">
 				<thead>
 						<tr>
 								<th style="width:5em;">レーン</th>
@@ -152,8 +152,8 @@
 								<td>{{ entry.club }}</td>
 								<td style="white-space:nowrap;">{% format_mark entry.personal_best event_status.event %}</td>
 								<td>
-										{% if entry.entry_status == 'Entry' %}
-										Entry
+										{% if entry.entry_status == 'Entry' or entry.entry_status == 'Result' %}
+										{{ entry.entry_status }}
 										{% elif entry.entry_status == 'Entry_2' %}
 										<span class="badge badge-info">当日エントリー</span>
 										{% else %}

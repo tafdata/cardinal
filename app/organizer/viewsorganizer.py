@@ -13,13 +13,14 @@ from django.utils import timezone # datetimeのwrapper
 from django.db.models.aggregates import Count
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-from competitions.models import Comp, Event, EventStatus
+from competitions.models import Comp, Event, EventStatus, Result
 
 from organizer.models import Entry
 from organizer.forms import SelectCompForm, EntryFilterForm, EntryForm, SLEditForm, EntryUploadFileForm, EntryStatusEditForm, SLUpdateForm
+from organizer import forms  as myForms
 
-from organizer.upload import EntryHandler
-from organizer.myprogram import ProgramMaker
+from organizer.upload import EntryHandler, ResultHandler
+from organizer.myprogram import ProgramMaker, ResultProgramMaker
 from organizer.jyoriku import JyorikuTool
 
 
@@ -274,3 +275,92 @@ def SL_cardinal(request):
     response = HttpResponse(df.to_csv(index=False, encoding='utf-8'), content_type="text/csv")
     response["Content-Disposition"] = "filename='cardinal_SL.csv"
     return response    
+
+
+
+# ================
+#  大会事後処理
+# ===============
+"""
+試合結果の登録
+"""
+@login_required
+@user_passes_test(lambda user: user.groups.filter(name='reception').exists())
+def result_import(request):
+    comp = get_comp(request)
+    
+    if request.method == "POST":
+        form = myForms.ResultUploadForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            RH = ResultHandler(comp)
+            errors = RH.handle_csv(request.FILES['file'])
+            df_error, df_error_DB = RH.get_error_df()
+            CSV = {
+                "std_error": df_error.to_csv(index=False, header=False),
+                "DB_error": df_error_DB.to_csv(index=False, header=False),            
+            }
+            summary = {
+                "file_name": str(request.FILES['file']),
+                "input_num": RH.success_num+len(RH.errors),
+                "success_num": RH.success_num,
+                "error_num": len(RH.errors)+len(RH.errors_DB)
+            }
+                
+            return render(request,
+                          'organizer/organizer/entry_add_by_file_check.html',
+                          {'comp': comp, 'summary': summary, 'errors': errors, "CSV":CSV})
+    else:
+        form = myForms.ResultUploadForm()
+
+    return render(request,
+                  'organizer/organizer/result_import.html',
+                  {'form': form, 'comp': comp}) 
+
+
+
+"""
+Result プロ
+"""
+def result_excel(request, sl_type=None, pk=None):
+    comp = get_comp(request)
+    PM = ResultProgramMaker(comp)
+    
+    # ダウンロード
+    # Excel 作成
+    if sl_type == "event":
+        event = get_object_or_404(Event, pk=pk)
+        wb = RPM.cardinal_create_workbook_by_event(comp, event)
+        if event.short:
+            filename = str(event.sex)+str(event.short)+".xlsx"
+        else:
+            filename = str(event.sex)+str(event.name)+".xlsx"
+        print(filename)
+    elif sl_type == "event_status":
+        event_status = get_object_or_404(EventStatus, pk=pk)
+        event = event_status.event
+        wb = PM.cardinal_create_workbook_by_event_status(comp, event_status)
+        if event.short:
+            event_name = event.short
+        else:
+            event_name = event.name
+        filename = str(event_status.section+event.sex+event_name+"_Result.xlsx")
+    elif sl_type == "track":
+        wb = PM.cardinal_create_workbook_track(comp=comp, mode='single')
+        filename = "Track_Result.xlsx"
+    elif sl_type == "track2":
+        wb = PM.cardinal_create_workbook_track(comp, mode='multiple')
+        filename = "Track_Result.xlsx"        
+    elif sl_type == "field":
+        wb = PM.cardinal_create_workbook_field(comp)
+        filename = "Field_Result.xlsx"
+    else:
+        return redirect('organizer:organizer_top')
+    
+    # 保存
+    output = io.BytesIO()
+    wb.save(output)
+    # Response
+    response = HttpResponse(output.getvalue(), content_type="application/excel")
+    response["Content-Disposition"] = "filename="+filename
+    return response

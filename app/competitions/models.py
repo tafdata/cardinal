@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 """
 Choice Options
@@ -28,6 +29,8 @@ SECTION_CHOICES = (
     ('TT', '記録会'),
     ('XX', 'その他'),
 )
+CLASS_CHOICES = SECTION_CHOICES
+
 
 ROUND_CHOICES = (
     ('Heats', 'Heats'),
@@ -66,6 +69,7 @@ class Comp(models.Model):
         choices=COMP_STATUS_CHOICES,
         default='lock',
     )   # entry/result/on_going
+    cardinal_organizer = models.BooleanField('競技会運営ツール使用', default=False) # Organizerを使用して運営==>True
     
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -145,7 +149,7 @@ class EventStatus(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.section)+"_"+str(self.event)
+        return "comp"+str(self.comp.code)+"_"+str(self.section)+"_"+str(self.event)
 
 
     class Meta:
@@ -180,3 +184,54 @@ class GR(models.Model):
         unique_together = ('comp', 'event')
 
 
+
+"""
+Result 記録
+"""
+from organizer.models import Entry
+class Result(models.Model):
+    id = models.AutoField(primary_key=True)
+    comp = models.ForeignKey('Comp',on_delete=models.PROTECT)
+    event = models.ForeignKey('Event',on_delete=models.PROTECT)
+    sex = models.CharField(
+        max_length=1,
+        choices=SEX_CHOICES,
+        default='U',
+    )      # M/W
+    game_class = models.CharField(
+        max_length=4,
+        choices=CLASS_CHOICES,
+        default='OP',        
+    ) # 部門 [対校/OP]
+    game_round = models.CharField(
+        "Round",
+        max_length=64,
+        choices=ROUND_CHOICES,
+        default='Final',
+    )
+    group = models.IntegerField()      # 組
+    position = models.IntegerField(blank=True) # 順位
+    order_lane = models.IntegerField() # レーン/試技順
+    bib = models.CharField(max_length=64, blank=True)
+    name = models.CharField(max_length=64, help_text="氏名")
+    kana = models.CharField(max_length=64, help_text="フリガナ")
+    grade = models.CharField(max_length=64, blank=True)
+    club  = models.CharField(max_length=256, blank=True)
+    jaaf_branch = models.CharField(max_length=64) # 登録陸協
+    mark = models.CharField(max_length=6, blank=True)
+    wind = models.FloatField(blank=True, null=True)
+    
+    entry = models.ForeignKey(
+        'organizer.Entry',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )                           # 記録プロの出力には必要
+
+
+    def __str__(self):
+        return str(self.comp)+str(self.event)+str(self.name)
+    
+    
+    class Meta:
+        unique_together = ('comp', 'event', 'game_class', 'game_round', 'bib')
