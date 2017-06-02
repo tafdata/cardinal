@@ -1,6 +1,8 @@
 # Cardinal System 
 Athletic Meeting Management System. Improve the ecfficency and get rig of annoying work.
 
+## Full Document
+https://tafdata.github.io/cardinal/
 
 ## Discription
 陸上競技会運営を支援するwebアプリケーション. 当面はプログラムの編成,当日エントリーの受付と流し用スタートリストの自動作成を目指す.Djangoをdocker上で動作させHTTP経由でサーバPCにアクセスすることでスケーラビリティ-を持たせ、複数台のPCで業務を捌けるようにする.
