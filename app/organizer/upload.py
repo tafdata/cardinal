@@ -360,12 +360,18 @@ class ResultHandler(UploadHandler):
             # 記録
             mark = self.clean_mark(str(df["mark"]).replace(" ", ""))
             #print(df["mark"], mark)
+            # 順位
+            if df["position"] == 'False':
+                position = 0
+            else:
+                position = df["position"]
             # 風
-            if df["wind"]:
+            if not df["wind"] == 'False':
                 wind = str(df["wind"]).replace("m","")
             else:
-                wind = False
+                wind = 0
             # print(wind)
+            
             
             result =  Result.objects.create(
                 comp=self.comp,
@@ -374,7 +380,7 @@ class ResultHandler(UploadHandler):
                 game_class=game_class,
                 game_round=game_round,
                 group=group,
-                position=df["position"],
+                position=position,
                 order_lane=df["order_lane"],
                 bib=df["bib"],
                 name=str(df["name"]),
@@ -410,13 +416,16 @@ class ResultHandler(UploadHandler):
                 return True
 
             name = str(result.name).split()
+            kana = str(result.kana).split()
+            if len(kana) < 2:
+                kana = ["",""]            
             entry = Entry.objects.filter(
                 event_status__comp=self.comp,
                 event_status__event=event,
                 event_status__section=game_class,
                 event_status__match_round=game_round,
-                name_family=name[0],
-                name_first=name[1],
+                kana_family=kana[0],
+                kana_first=' '.join(kana[1:]),
                 club=result.club,
             )
             if len(entry) == 1:
@@ -444,9 +453,6 @@ class ResultHandler(UploadHandler):
                 if not len(event_status) == 1:
                     raise KeyError("EventStatus for Entry_2 does not exist or exist many.")
 
-                kana = result.kana.split()
-                if len(kana) < 2:
-                    kana = ["",""]
                 entry = Entry.objects.create(
                     event_status=event_status[0],
                     bib=df["bib"],
@@ -472,10 +478,12 @@ class ResultHandler(UploadHandler):
             error = {'type': "KeyError", 'msg': str(e), 'df': df}
             #print(error["type"], ": ", error["msg"])
             self.errors.append(error)
+            result.delete() # Entry objectの指定が必要なのにできなかったものは削除
         except IntegrityError as e:
             error = {'type': "IntegrityError[DB]", 'msg': str(e), 'df': df}
             #print(error["type"], ": ", error["msg"])
-            self.errors_DB.append(error)          
+            self.errors_DB.append(error)
+            result.delete()     # Entry objectの指定が必要なのにできなかったものは削除
         return True
             
 

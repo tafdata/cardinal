@@ -330,7 +330,7 @@ def result_excel(request, sl_type=None, pk=None):
     # Excel 作成
     if sl_type == "event":
         event = get_object_or_404(Event, pk=pk)
-        wb = RPM.cardinal_create_workbook_by_event(comp, event)
+        wb = PM.cardinal_create_workbook_by_event(comp, event)
         if event.short:
             filename = str(event.sex)+str(event.short)+".xlsx"
         else:

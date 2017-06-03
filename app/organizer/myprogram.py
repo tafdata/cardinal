@@ -487,6 +487,31 @@ class ProgramMaker:
             ws.cell(row=row+1, column=i).border = self.border_all   
         return row + 2
 
+
+    
+    """
+    Write Head
+    """
+    def write_head_Track(self, ws, row, col, group=True, wind=True):
+        # 1行目
+        if group and not group == -123:
+            self.write_cell(ws.cell(row=row, column=col+1), str(group)+u"組", border=self.border_all)
+        if wind:
+            self.write_cell(ws.cell(row=row, column=col+5), u"(＋・ー", al=self.al_left) # Merged
+            self.write_cell(ws.cell(row=row, column=col+6), u" m/s)", al=self.al_right) # Merged
+        if group or wind: # どちらかを書き込む場合は
+            row += 1
+        
+        # 2行目
+        self.write_cell(ws.cell(row=row, column=col+1), u"ﾚｰﾝ", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+2), u"No.", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+3), u"氏名", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+4), u"所属/陸協", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+5), u"参考記録", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+6), u"順位/記録", al=self.al_left)
+        # 次の空白行の行番号を返す
+        return row+1
+
     
     """
     Write Group
@@ -518,7 +543,7 @@ class ProgramMaker:
             row = row - 1            
         # 書き込む行を保存
         self.row_prev_group_top = row
-            
+
         
         # Header
         row = self.write_head_Track(ws, row, col, group, wind=entries[0].event_status.event.wind)
@@ -1161,7 +1186,14 @@ class ResultProgramMaker(ProgramMaker):
             
         
         # Header
-        row = self.write_head_Track(ws, row, col, group, wind=entries[0].event_status.event.wind)
+        try:
+            result = Result.objects.get(entry=entries.filter(entry_status='Result')[0])
+            wind_val = result.wind
+            print(result)
+        except ObjectDoesNotExist:
+            wind_val = 0.0
+            print("Not Fuound")
+        row = self.write_head_Track(ws, row, col, group, wind=entries[0].event_status.event.wind, wind_val=wind_val)
         # エントリーの書き込み
         c = 0
         DNS = []
@@ -1199,6 +1231,31 @@ class ResultProgramMaker(ProgramMaker):
 
 
 
+    """
+    Write Head
+    """
+    def write_head_Track(self, ws, row, col, group=True, wind=True, wind_val=0):
+        # 1行目
+        if group and not group == -123:
+            self.write_cell(ws.cell(row=row, column=col+1), str(group)+u"組", border=self.border_all)
+        if wind:
+            if wind_val > 0: wind_val = '+'+str(wind_val)
+            elif wind_val == 0.0: wind_val = "0.0"
+            else: wind_val = str(wind_val)
+            ws.merge_cells(start_row=row,start_column=col+5,end_row=row,end_column=col+6)
+            self.write_cell(ws.cell(row=row, column=col+5), u"( "+wind_val+" m/s)") # Merged
+        if group or wind: # どちらかを書き込む場合は
+            row += 1
+        
+        # 2行目
+        self.write_cell(ws.cell(row=row, column=col+1), u"ﾚｰﾝ", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+2), u"No.", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+3), u"氏名", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+4), u"所属/陸協", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+5), u"参考記録", al=self.al_left)
+        self.write_cell(ws.cell(row=row, column=col+6), u"順位/記録", al=self.al_left)
+        # 次の空白行の行番号を返す
+        return row+1        
 
     """
     Write Row
@@ -1300,9 +1357,8 @@ class ResultProgramMaker(ProgramMaker):
                 position = result.mark
                 mark = "-"
                 wind = "-"
-            print(result.mark, mark)                
         except ObjectDoesNotExist:
-            position = "(  )"
+            position = ""
             mark = ""
             wind = ""
         if trial == 6: cell_end = 14

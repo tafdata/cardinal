@@ -43,11 +43,11 @@
 						<div class="col-sm-6">
 								<div class="card mb-3">
 										<div class="card-block">
-												<h4 class="card-title">エントリー</h4>
+												<h4 class="card-title">Import</h4>
 												{# <a href="{% url 'organizer:sl_web' event_status_id=event_status.id %}" class="card-link">個別登録</a> #}
 												<div class="row">
 														<div class="col-md-4">
-																<span class="mr-3 card-text">個別登録</span>
+																<span class="mr-3 card-text">個別Entry</span>
 														</div>
 														<div class="col-md-8">
 																<a href="{% url 'organizer:organizer_entry_add' entry_method='entry' %}" class="card-link">通常エントリー</a>
@@ -56,10 +56,18 @@
 												</div>
 												<div class="row">
 														<div class="col-md-4">
-																<span class="mr-3 card-text">一括登録</span>
+																<span class="mr-3 card-text">一括Entry</span>
 														</div>
 														<div class="col-md-8">
 																<a href="{% url 'organizer:organizer_entry_add_by_file' %}" class="card-link">一括エントリー</a>
+														</div>
+												</div>
+												<div class="row">
+														<div class="col-md-4">
+																<span class="mr-3 card-text">Result</span>
+														</div>
+														<div class="col-md-8">
+																<a href="{% url 'organizer:organizer_result_import' %}" class="card-link">Result import</a>
 														</div>
 												</div>
 										</div>
