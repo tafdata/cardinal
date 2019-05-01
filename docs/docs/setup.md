@@ -11,9 +11,13 @@
 
 
 ### 設定手順
+
 1. [管理画面 - 認証と認可>ユーザ](http://localhost:7000/admin/auth/user/) から，3種類のユーザを作成
 1. [管理画面 - 認証と認可>グループ](http://localhost:7000/admin/auth/group/) から，`reception`グループを作成 (**重要**)
-   1. 名前:  `reception`
-   1. 権限: `competitions, organizer`関係のdelete以外の権限全て
+
+| Reception Group | - |
+|------|-------------------| 
+| 名前 |  `reception` |
+| 権限 | `competitions, organizer`関係のdelete以外の権限全て |
 
 
